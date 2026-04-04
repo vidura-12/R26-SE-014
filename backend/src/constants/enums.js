@@ -1,0 +1,24 @@
+const USER_ROLES = Object.freeze({
+  ADMIN: 'ADMIN',
+  FARMER: 'FARMER',
+  PEELER: 'PEELER'
+});
+
+const PROCESSING_CATEGORIES = Object.freeze({
+  ALBA: 'ALBA',
+  C5_SPECIAL: 'C5_SPECIAL',
+  C5: 'C5',
+  H1: 'H1',
+  H2: 'H2',
+  OTHER: 'OTHER'
+});
+
+const HARVEST_STATUSES = Object.freeze({
+  PENDING: 'PENDING',
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+});
+
+module.exports = { USER_ROLES, PROCESSING_CATEGORIES, HARVEST_STATUSES };
