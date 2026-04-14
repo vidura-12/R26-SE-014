@@ -1,0 +1,106 @@
+{
+  "weekStart": "2026-04-27",
+  "farms": [
+    {
+      "id": "FARM-001",
+      "farmerName": "Mr. Perera",
+      "farmName": "Akuressa Cinnamon Plot A",
+      "location": { "lat": 6.0961, "lng": 80.4806 },
+      "treeCount": 420,
+      "harvestReady": true,
+      "urgency": 5,
+      "processingCategory": "ALBA",
+      "readyFrom": "2026-04-27",
+      "peelabilityDeadline": "2026-04-30"
+    },
+    {
+      "id": "FARM-002",
+      "farmerName": "Ms. Fernando",
+      "farmName": "Kamburupitiya Estate Block B",
+      "location": { "lat": 6.0722, "lng": 80.5646 },
+      "treeCount": 280,
+      "harvestReady": true,
+      "urgency": 4,
+      "processingCategory": "C5_SPECIAL",
+      "readyFrom": "2026-04-28",
+      "peelabilityDeadline": "2026-05-02"
+    },
+    {
+      "id": "FARM-003",
+      "farmerName": "Mr. Silva",
+      "farmName": "Matara Plot C",
+      "location": { "lat": 5.9549, "lng": 80.5550 },
+      "treeCount": 600,
+      "harvestReady": true,
+      "urgency": 3,
+      "processingCategory": "H1",
+      "readyFrom": "2026-04-27",
+      "peelabilityDeadline": "2026-05-04"
+    },
+    {
+      "id": "FARM-004",
+      "farmerName": "Mr. Jayasuriya",
+      "farmName": "Galle Farm D",
+      "location": { "lat": 6.0535, "lng": 80.2210 },
+      "treeCount": 350,
+      "harvestReady": true,
+      "urgency": 2,
+      "processingCategory": "H2",
+      "readyFrom": "2026-04-29",
+      "peelabilityDeadline": "2026-05-05"
+    },
+    {
+      "id": "FARM-005",
+      "farmerName": "Ms. Kumari",
+      "farmName": "Weligama Plot E",
+      "location": { "lat": 5.9730, "lng": 80.4297 },
+      "treeCount": 220,
+      "harvestReady": true,
+      "urgency": 4,
+      "processingCategory": "C5",
+      "readyFrom": "2026-04-27",
+      "peelabilityDeadline": "2026-05-01"
+    }
+  ],
+  "peelerGroups": [
+    {
+      "id": "KALLIYA-001",
+      "groupName": "Southern Skilled Kalliya",
+      "location": { "lat": 6.0329, "lng": 80.2168 },
+      "groupSize": 6,
+      "capacityTreesPerHour": 55,
+      "availableDays": ["2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01"],
+      "maxHoursPerDay": 8,
+      "rating": 4.7
+    },
+    {
+      "id": "KALLIYA-002",
+      "groupName": "Matara Cinnamon Peelers",
+      "location": { "lat": 5.9485, "lng": 80.5353 },
+      "groupSize": 5,
+      "capacityTreesPerHour": 42,
+      "availableDays": ["2026-04-27", "2026-04-28", "2026-04-30", "2026-05-02"],
+      "maxHoursPerDay": 8,
+      "rating": 4.2
+    },
+    {
+      "id": "KALLIYA-003",
+      "groupName": "Akuressa Kalliya Group",
+      "location": { "lat": 6.0940, "lng": 80.4780 },
+      "groupSize": 4,
+      "capacityTreesPerHour": 35,
+      "availableDays": ["2026-04-28", "2026-04-29", "2026-05-01", "2026-05-03"],
+      "maxHoursPerDay": 8,
+      "rating": 3.9
+    }
+  ],
+  "settings": {
+    "populationSize": 100,
+    "generations": 220,
+    "crossoverRate": 0.85,
+    "mutationRate": 0.08,
+    "elitismCount": 5,
+    "tournamentSize": 4,
+    "randomSeed": 42
+  }
+}
