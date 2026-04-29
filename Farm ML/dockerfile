@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    unixodbc \
+    unixodbc-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add the Microsoft GPG key and Repository
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft-prod.gpg \
+    && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list
+
+# Install the ODBC Driver
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy your specific script and model
+# Using the path from your earlier screenshot
+COPY farm-ml/scripts/generate_samples.py .
+# Ensure the models folder exists in the container
+RUN mkdir -p models
+COPY farm-ml/models/rf_model.pkl ./models/
+
+CMD ["python", "generate_samples.py"]

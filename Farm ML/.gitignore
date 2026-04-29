@@ -1,0 +1,12 @@
+scheduler/.funcignore
+/scheduler/.venv
+*.txt
+*.json
+deploy-cinnamon.ps1
+.venv
+farm-ml/.env
+farm-ml/data/farm_full_dataset.csv
+farm-ml/data/farm_ml_dataset.csv
+farm-ml/data/correlation_heatmap.png
+farm-ml/data/farm_risk_ndvi_timeline.png
+feature_importance.png
