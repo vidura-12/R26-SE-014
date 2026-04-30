@@ -5,6 +5,13 @@ import img3 from "../assets/5.jpg";
 import img4 from "../assets/6.jpg";
 
 const GRADE_DATA = {
+  Alba: {
+    description: "Alba — highest grade of Ceylon cinnamon, made from the thinnest and most delicate inner bark. Very light colour, smooth texture, and premium aroma.",
+    quality: "Ultra Premium",
+    thickness: "< 0.5 mm",
+    origin: "True Ceylon Cinnamon (Cinnamomum verum)",
+    tier: "premium",
+        },
   C5: {
     description: "Extra Special — finest grade, thin uniform quills, soft texture, pale tan colour with a delicate aroma. Sourced from innermost bark layers.",
     quality: "Premium",
@@ -19,13 +26,6 @@ const GRADE_DATA = {
     origin: "True Ceylon Cinnamon (Cinnamomum verum)",
     tier: "premium",
   },
-  H1: {
-    description: "Hamburg Grade 1 — slightly imperfect quills with minor cosmetic blemishes but full aromatic and culinary value.",
-    quality: "Medium",
-    thickness: "1.5 – 2 mm",
-    origin: "True Ceylon Cinnamon (Cinnamomum verum)",
-    tier: "medium",
-  },
   H2: {
     description: "Hamburg Grade 2 — thicker quills with more visible imperfections. Good flavour retention suitable for industrial and bulk use.",
     quality: "Standard",
@@ -33,13 +33,7 @@ const GRADE_DATA = {
     origin: "True Ceylon Cinnamon (Cinnamomum verum)",
     tier: "standard",
   },
-  M5: {
-    description: "Mexican Grade — thicker, rougher bark with a bolder, more pungent taste. Higher coumarin content.",
-    quality: "Standard",
-    thickness: "2 – 4 mm",
-    origin: "Cassia Cinnamon (Cinnamomum cassia)",
-    tier: "standard",
-  },
+
 };
 
 // Colour tokens per grade tier
@@ -342,10 +336,10 @@ export default function Cinnamon() {
 
         return (
           <>
-            {/* ── 02 SUMMARY ── */}
+            {/* ── SUMMARY ── */}
             <section className="py-14 px-4">
               <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
-                02 — Analysis Result
+                00 — Analysis Result
                 <span className="flex-1 h-px bg-gray-200" />
               </div>
 
@@ -382,23 +376,34 @@ export default function Cinnamon() {
                   <p className="font-serif text-4xl font-medium text-green-900 tracking-tight leading-none mb-1.5">{totalQuills}</p>
                   <p className="text-xs text-gray-500">{isMixed ? `${detailEntries.length} grade types found` : "All same grade"}</p>
                 </div>
-                {/* Quill Thickness */}
+                {/* Motivation Caption */}
                 <div className="p-7 bg-white">
-                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">Quill Thickness</p>
-                  <p className="font-serif text-3xl font-medium text-green-900 tracking-tight leading-none mb-1.5">{gradeInfo.thickness}</p>
-                  <p className="text-xs text-gray-500 leading-snug">Based on final grade</p>
+                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">
+                    Insight
+                </p>
+
+                <p className="font-serif text-lg font-medium text-green-900 leading-snug">
+                    {finalGrade === "Alba" && "Top-tier cinnamon — highest value, rare quality, and premium market price."}
+                    {finalGrade === "C5" && "High-value grade — excellent quality with strong export demand."}
+                    {finalGrade === "C4" && "Mid-range grade — balanced quality suitable for commercial use."}
+                    {finalGrade === "H2" && "Lower grade — mainly used for bulk and industrial purposes."}
+                </p>
+
+                <p className="text-xs text-gray-500 leading-snug mt-1">
+                    Based on grade value hierarchy
+                </p>
                 </div>
               </div>
             </section>
 
-            {/* ── 03 GRADE BREAKDOWN ── */}
+            {/* ── GRADE BREAKDOWN ── */}
             <section className="py-14 px-4">
               <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
-                03 — Grade Breakdown
+                01 — Grade Breakdown
                 <span className="flex-1 h-px bg-gray-200" />
               </div>
 
-              {/* Distribution bar (only meaningful for mixed) */}
+              {/* Distribution bar */}
               {isMixed && (
                 <div className="mb-6 border border-gray-200 rounded p-5 bg-white">
                   <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-3">Bundle Composition</p>
@@ -465,10 +470,10 @@ export default function Cinnamon() {
               </div>
             </section>
 
-            {/* ── 04 ORIGIN CARD ── */}
+            {/* ── ORIGIN CARD ── */}
             <section className="py-14 px-4">
               <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
-                04 — Classification Details
+                02 — Classification Details
                 <span className="flex-1 h-px bg-gray-200" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 border border-gray-200 rounded overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
@@ -546,7 +551,7 @@ export default function Cinnamon() {
         </div>
       </section>
 
-      {/* ── FULL-WIDTH IMAGE + BOXES ── */}
+      {/* ── FULL-WIDTH IMAGE & BOXES ── */}
       <section className="px-4 pb-14">
         <div className="relative overflow-hidden rounded-sm">
           <img
