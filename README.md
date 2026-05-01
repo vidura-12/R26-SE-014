@@ -2,6 +2,8 @@
 
 AI-driven labor optimization platform for the Ceylon cinnamon harvesting industry. Connects farmers with Kalliya peeler groups using a Genetic Algorithm to generate optimized weekly harvest schedules.
 
+**Deployed version:** [https://cinnamonsync.netlify.app](https://cinnamonsync.netlify.app)
+
 ---
 
 ## Project Structure
