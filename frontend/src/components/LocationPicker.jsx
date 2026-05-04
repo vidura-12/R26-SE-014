@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
 const pinIcon = L.divIcon({
   className: '',
   html: `<div style="width:36px;height:36px;border-radius:50% 50% 50% 0;background:#b86620;transform:rotate(-45deg);border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
-    <span style="transform:rotate(45deg);font-size:14px;line-height:1;">📍</span>
+    <div style="transform:rotate(45deg);width:10px;height:10px;border-radius:50%;background:white;opacity:0.9;"></div>
   </div>`,
   iconSize: [36, 36],
   iconAnchor: [18, 36],

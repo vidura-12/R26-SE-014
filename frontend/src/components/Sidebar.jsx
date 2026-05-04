@@ -1,6 +1,18 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logoImg from '../assets/logo.png'
+import {
+  HomeIcon,
+  UserGroupIcon,
+  CalendarDaysIcon,
+  BoltIcon,
+  ClipboardDocumentListIcon,
+  ShieldCheckIcon,
+  UserCircleIcon,
+  MapPinIcon,
+  ArrowRightStartOnRectangleIcon,
+  SparklesIcon,
+} from '@heroicons/react/24/outline'
 
 const css = `
   .sidebar {
@@ -80,25 +92,25 @@ const css = `
 `
 
 const adminLinks = [
-  { to: '/admin',              label: 'Dashboard',       icon: '🏠', end: true },
-  { to: '/admin/farmers',      label: 'Farmers',         icon: '🌾' },
-  { to: '/admin/peelers',      label: 'Peeler Groups',   icon: '👥' },
-  { to: '/admin/harvests',     label: 'Harvest Requests',icon: '📅' },
-  { to: '/admin/optimization', label: 'Optimization',    icon: '⚡' },
-  { to: '/admin/schedules',    label: 'Schedules',       icon: '📋' },
-  { to: '/admin/users',        label: 'System Users',    icon: '🛡️' },
-  { to: '/admin/profile',      label: 'My Account',      icon: '👤', section: 'Account' },
+  { to: '/admin',              label: 'Dashboard',       Icon: HomeIcon,                    end: true },
+  { to: '/admin/farmers',      label: 'Farmers',         Icon: SparklesIcon },
+  { to: '/admin/peelers',      label: 'Peeler Groups',   Icon: UserGroupIcon },
+  { to: '/admin/harvests',     label: 'Harvest Requests',Icon: CalendarDaysIcon },
+  { to: '/admin/optimization', label: 'Optimization',    Icon: BoltIcon },
+  { to: '/admin/schedules',    label: 'Schedules',       Icon: ClipboardDocumentListIcon },
+  { to: '/admin/users',        label: 'System Users',    Icon: ShieldCheckIcon },
+  { to: '/admin/profile',      label: 'My Account',      Icon: UserCircleIcon, section: 'Account' },
 ]
 const farmerLinks = [
-  { to: '/farmer',          label: 'Home',        icon: '🏠', end: true },
-  { to: '/farmer/harvests', label: 'My Harvests', icon: '🌿' },
-  { to: '/farmer/profile',  label: 'My Profile',  icon: '👤', section: 'Account' },
+  { to: '/farmer',          label: 'Home',        Icon: HomeIcon,        end: true },
+  { to: '/farmer/harvests', label: 'My Harvests', Icon: SparklesIcon },
+  { to: '/farmer/profile',  label: 'My Profile',  Icon: UserCircleIcon, section: 'Account' },
 ]
 const peelerLinks = [
-  { to: '/peeler',          label: 'Home',       icon: '🏠', end: true },
-  { to: '/peeler/routes',   label: 'My Routes',  icon: '📍' },
-  { to: '/peeler/group',    label: 'My Group',   icon: '👥' },
-  { to: '/peeler/account',  label: 'My Account', icon: '👤', section: 'Account' },
+  { to: '/peeler',          label: 'Home',       Icon: HomeIcon,        end: true },
+  { to: '/peeler/routes',   label: 'My Routes',  Icon: MapPinIcon },
+  { to: '/peeler/group',    label: 'My Group',   Icon: UserGroupIcon },
+  { to: '/peeler/account',  label: 'My Account', Icon: UserCircleIcon, section: 'Account' },
 ]
 
 export default function Sidebar({ mobileOpen, onClose, collapsed }) {
@@ -123,7 +135,7 @@ export default function Sidebar({ mobileOpen, onClose, collapsed }) {
             onClick={onClose}
             className={({ isActive }) => `nav-link${isActive ? ' nav-link-active' : ''}`}
           >
-            <span style={{ fontSize: '1rem', width: 18, textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
+            <item.Icon style={{ width: 16, height: 16, flexShrink: 0, opacity: 0.85 }} />
             {item.label}
           </NavLink>
         </span>
@@ -166,7 +178,7 @@ export default function Sidebar({ mobileOpen, onClose, collapsed }) {
               width: 30, height: 30, borderRadius: '50%',
               background: 'linear-gradient(135deg, #c8773a, #e8956a)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: "'Syne', sans-serif", fontWeight: 800,
+              fontFamily: "'DM Sans', sans-serif", fontWeight: 800,
               fontSize: '0.72rem', color: 'white', flexShrink: 0,
             }}>
               {user?.name?.[0]?.toUpperCase() ?? 'U'}
@@ -181,7 +193,7 @@ export default function Sidebar({ mobileOpen, onClose, collapsed }) {
             </div>
           </div>
           <button className="logout-btn" onClick={logout}>
-            <span>🚪</span> Sign Out
+            <ArrowRightStartOnRectangleIcon style={{ width: 16, height: 16, flexShrink: 0 }} /> Sign Out
           </button>
         </div>
       </aside>

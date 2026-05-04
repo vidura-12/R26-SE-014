@@ -31,9 +31,9 @@ function makeIcon(color, label) {
   })
 }
 
-export const farmerIcon   = (n) => makeIcon('#b86620', n ?? '🌿')
-export const peelerIcon   = (n) => makeIcon('#33762d', n ?? '✂')
-export const harvestIcon  = (n) => makeIcon('#7c3aed', n ?? '🌾')
+export const farmerIcon   = (n) => makeIcon('#b86620', n ?? 'F')
+export const peelerIcon   = (n) => makeIcon('#33762d', n ?? 'P')
+export const harvestIcon  = (n) => makeIcon('#7c3aed', n ?? 'H')
 export const stopIcon     = (n) => makeIcon('#b86620', n)
 
 // Fit map to given bounds when markers change

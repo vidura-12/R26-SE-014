@@ -4,6 +4,15 @@ import { optimizationApi, peelersApi } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Spinner from '../../components/Spinner'
 import { format } from 'date-fns'
+import {
+  MapPinIcon,
+  TruckIcon,
+  MapIcon,
+  CalendarDaysIcon,
+  BoltIcon,
+  StarIcon,
+  FaceSmileIcon,
+} from '@heroicons/react/24/outline'
 
 export default function PeelerHome() {
   const { user } = useAuth()
@@ -45,9 +54,11 @@ export default function PeelerHome() {
       {/* Welcome Banner */}
       <div className="welcome-banner fade-in">
         <div>
-          <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Peeler Dashboard</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.4rem', color: 'white' }}>
-            {user?.name} 👋
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginBottom: 4, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+            Peeler
+          </div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: 'white', lineHeight: 1.2 }}>
+            Hi, {user?.name} <FaceSmileIcon style={{ width: 22, height: 22, display: 'inline', verticalAlign: 'middle', color: '#f4c97a' }} />
           </div>
           <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginTop: 6 }}>
             {activeSchedule ? 'Active harvest schedule this week.' : 'No active schedule assigned yet.'}
@@ -57,7 +68,7 @@ export default function PeelerHome() {
           background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 12, padding: '10px 16px',
         }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#5bb87e', lineHeight: 1 }}>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#5bb87e', lineHeight: 1 }}>
             {schedules.length}
           </div>
           <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
@@ -79,16 +90,16 @@ export default function PeelerHome() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
             {[
-              { icon: '📍', label: 'Assigned Farms', value: activeSchedule.optimizerSummary?.totalAssignedFarms ?? '—' },
-              { icon: '🚛', label: 'Total Distance', value: `${activeSchedule.optimizerSummary?.totalDistanceKm?.toFixed(1) ?? '—'} km` },
-              { icon: '🗺️', label: 'Routes',         value: activeSchedule.assignments?.length ?? '—' },
-            ].map(({ icon, label, value }) => (
+              { Icon: MapPinIcon, label: 'Assigned Farms', value: activeSchedule.optimizerSummary?.totalAssignedFarms ?? '—' },
+              { Icon: TruckIcon,  label: 'Total Distance', value: `${activeSchedule.optimizerSummary?.totalDistanceKm?.toFixed(1) ?? '—'} km` },
+              { Icon: MapIcon,    label: 'Routes',         value: activeSchedule.assignments?.length ?? '—' },
+            ].map(({ Icon, label, value }) => (
               <div key={label} style={{
                 background: 'var(--mint)', border: '1px solid var(--green-pale)',
                 borderRadius: 12, padding: '12px', textAlign: 'center',
               }}>
-                <div style={{ fontSize: '1.1rem', marginBottom: 4 }}>{icon}</div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.1rem', color: 'var(--green-dark)' }}>{value}</div>
+                <Icon style={{ width: 20, height: 20, margin: '0 auto 4px', color: 'var(--green-dark)', opacity: 0.7 }} />
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: '1.1rem', color: 'var(--green-dark)' }}>{value}</div>
                 <div style={{ fontSize: '0.69rem', color: 'var(--text-soft)', marginTop: 2 }}>{label}</div>
               </div>
             ))}
@@ -99,8 +110,8 @@ export default function PeelerHome() {
           textAlign: 'center', padding: '40px 24px',
           border: '2px dashed var(--green-pale)',
         }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>🚛</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: 'var(--green-dark)', marginBottom: 6 }}>
+          <TruckIcon style={{ width: 40, height: 40, margin: '0 auto 10px', color: 'var(--green-dark)', opacity: 0.25 }} />
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: 'var(--green-dark)', marginBottom: 6 }}>
             No Active Schedule
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-soft)' }}>
@@ -134,10 +145,12 @@ export default function PeelerHome() {
                   width: 40, height: 40, borderRadius: 10,
                   background: 'var(--mint)', border: '1px solid var(--green-pale)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1rem', flexShrink: 0,
-                }}>📅</div>
+                  flexShrink: 0,
+                }}>
+                  <CalendarDaysIcon style={{ width: 18, height: 18, color: 'var(--green-dark)' }} />
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.86rem', color: 'var(--green-dark)' }}>
+                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.86rem', color: 'var(--green-dark)' }}>
                     {format(new Date(s.weekStartDate), 'MMM d')} – {format(new Date(s.weekEndDate), 'MMM d, yyyy')}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-soft)', marginTop: 2 }}>
@@ -153,17 +166,17 @@ export default function PeelerHome() {
       {/* Info cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="tips-grid">
         {[
-          { icon: '⚡', title: 'AI-Optimized Routes', desc: 'Your routes are generated by a genetic algorithm that minimizes travel distance and respects deadlines.', bg: 'var(--cinnamon-bg)', border: 'rgba(200,119,58,0.22)', tc: 'var(--cinnamon)' },
-          { icon: '⭐', title: 'Rating Matters', desc: 'Higher-rated peeler groups get priority assignment to premium ALBA and C5 Special grade farms.', bg: 'var(--mint)', border: 'var(--green-pale)', tc: 'var(--green-dark)' },
+          { Icon: BoltIcon, title: 'AI-Optimized Routes', desc: 'Your routes are generated by a genetic algorithm that minimizes travel distance and respects deadlines.', bg: 'var(--cinnamon-bg)', border: 'rgba(200,119,58,0.22)', tc: 'var(--cinnamon)' },
+          { Icon: StarIcon, title: 'Rating Matters',       desc: 'Higher-rated peeler groups get priority assignment to premium ALBA and C5 Special grade farms.', bg: 'var(--mint)', border: 'var(--green-pale)', tc: 'var(--green-dark)' },
         ].map(item => (
           <div key={item.title} style={{
             background: item.bg, border: `1px solid ${item.border}`,
             borderRadius: 14, padding: '18px 20px',
             display: 'flex', gap: 14, alignItems: 'flex-start',
           }}>
-            <div style={{ fontSize: '1.3rem', flexShrink: 0, marginTop: 2 }}>{item.icon}</div>
+            <item.Icon style={{ width: 20, height: 20, flexShrink: 0, marginTop: 2, color: item.tc }} />
             <div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.88rem', color: item.tc, marginBottom: 5 }}>{item.title}</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.88rem', color: item.tc, marginBottom: 5 }}>{item.title}</div>
               <div style={{ fontSize: '0.79rem', color: 'var(--text-mid)', lineHeight: 1.65 }}>{item.desc}</div>
             </div>
           </div>

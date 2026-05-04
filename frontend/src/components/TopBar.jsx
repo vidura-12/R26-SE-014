@@ -57,7 +57,7 @@ export default function TopBar({ title, subtitle, onMenuClick }) {
 
         <div>
           <div style={{
-            fontFamily: "'Syne', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontWeight: 700, fontSize: '1rem',
             color: '#1a4028',
           }}>{title}</div>
@@ -93,7 +93,7 @@ export default function TopBar({ title, subtitle, onMenuClick }) {
             width: 34, height: 34, borderRadius: '50%',
             background: 'linear-gradient(135deg, #c8773a, #e8956a)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Syne', sans-serif", fontWeight: 800,
+            fontFamily: "'DM Sans', sans-serif", fontWeight: 800,
             fontSize: '0.78rem', color: 'white',
             cursor: 'pointer', transition: 'box-shadow 0.2s',
             userSelect: 'none',

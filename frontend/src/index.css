@@ -3,7 +3,7 @@
 
 @theme {
   --font-sans: 'DM Sans', sans-serif;
-  --font-display: 'Syne', sans-serif;
+  --font-display: 'DM Sans', sans-serif;
 
   /* Design color tokens */
   --color-white:        #ffffff;
@@ -109,7 +109,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
   }
 }
 
@@ -120,7 +120,7 @@
     border-radius: 100px;
     background: var(--green-dark);
     color: white;
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 700;
     font-size: 0.86rem;
     border: none;
@@ -148,7 +148,7 @@
     background: white;
     color: var(--green-dark);
     border: 1px solid var(--border);
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 700;
     font-size: 0.84rem;
     cursor: pointer;
@@ -168,7 +168,7 @@
     background: var(--cinnamon-bg);
     color: var(--cinnamon);
     border: 1px solid rgba(200,119,58,0.32);
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 700;
     font-size: 0.86rem;
     cursor: pointer;
@@ -190,7 +190,7 @@
     background: #fef2f0;
     color: var(--danger);
     border: 1px solid rgba(224,90,74,0.22);
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 700;
     font-size: 0.86rem;
     cursor: pointer;
@@ -218,7 +218,7 @@
     border-color: var(--green-pale);
   }
   .card-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 700;
     font-size: 0.92rem;
     color: var(--green-dark);
@@ -247,7 +247,7 @@
     border-color: var(--green-pale);
   }
   .kpi-value {
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 800;
     font-size: 2rem;
     color: var(--green-dark);
@@ -334,7 +334,7 @@
     border-radius: 2px;
   }
   .section-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 800;
     font-size: clamp(1.5rem, 2.5vw, 2rem);
     line-height: 1.15;
@@ -345,7 +345,7 @@
   /* ── Page header ── */
   .page-header { margin-bottom: 22px; }
   .page-header h1 {
-    font-family: 'Syne', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 800;
     font-size: 1.1rem;
     color: var(--green-dark);
@@ -492,7 +492,7 @@
   .cs-toast--error   { background: #fef2f0 !important; border-color: rgba(224,90,74,0.3) !important; color: #7f1d1d !important; }
   .cs-toast--warning { background: #fffbeb !important; border-color: rgba(220,168,52,0.3) !important; color: #78350f !important; }
   .cs-toast--info    { background: var(--cinnamon-bg) !important; border-color: rgba(200,119,58,0.3) !important; color: #7a3f1e !important; }
-  .cs-toast__title   { font-family: 'Syne', sans-serif !important; font-size: 0.875rem !important; font-weight: 700 !important; }
+  .cs-toast__title   { font-family: 'DM Sans', sans-serif !important; font-size: 0.875rem !important; font-weight: 700 !important; }
   .cs-toast__desc    { font-size: 0.8125rem !important; opacity: 0.8 !important; margin-top: 2px !important; }
   .cs-toast__action  { background: var(--green-dark) !important; color: #fff !important; border-radius: 8px !important; font-size: 0.75rem !important; font-weight: 600 !important; padding: 4px 10px !important; }
   .cs-toast__close   { top: 10px !important; right: 10px !important; border-radius: 8px !important; opacity: 0.5 !important; }

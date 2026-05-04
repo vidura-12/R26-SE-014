@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { notificationsApi } from '../api'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
+import { BellIcon, BellSlashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const typeColors = {
   HARVEST_STATUS:    { dot: '#c8773a', bg: '#fdf3ec' },
@@ -71,13 +72,16 @@ export default function NotificationBell() {
           width: 34, height: 34, borderRadius: 8,
           border: '1px solid var(--border)', background: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'background 0.2s', fontSize: '1rem',
+          cursor: 'pointer', transition: 'background 0.2s',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--mint)'}
         onMouseLeave={e => e.currentTarget.style.background = 'none'}
         aria-label="Notifications"
       >
-        {unread > 0 ? '🔔' : '🔕'}
+        {unread > 0
+          ? <BellIcon style={{ width: 18, height: 18, color: 'var(--green-dark)' }} />
+          : <BellSlashIcon style={{ width: 18, height: 18, color: 'var(--text-soft)' }} />
+        }
         {unread > 0 && (
           <span style={{
             position: 'absolute', top: -2, right: -2,
@@ -106,7 +110,7 @@ export default function NotificationBell() {
             padding: '14px 16px', borderBottom: '1px solid var(--border)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: 'var(--green-dark)' }}>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: 'var(--green-dark)' }}>
                 Notifications
               </span>
               {unread > 0 && (
@@ -128,7 +132,9 @@ export default function NotificationBell() {
                   fontFamily: "'DM Sans', sans-serif",
                 }}
               >
-                Mark all read ✓
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <CheckIcon style={{ width: 12, height: 12 }} /> Mark all read
+                </span>
               </button>
             )}
           </div>
@@ -139,7 +145,7 @@ export default function NotificationBell() {
               <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-soft)', fontSize: '0.82rem' }}>Loading…</div>
             ) : notifications.length === 0 ? (
               <div style={{ padding: '40px 16px', textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', marginBottom: 8, opacity: 0.4 }}>🔕</div>
+                <BellSlashIcon style={{ width: 32, height: 32, margin: '0 auto 8px', opacity: 0.3, color: 'var(--text-soft)' }} />
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)' }}>No notifications yet</p>
               </div>
             ) : (
@@ -184,7 +190,7 @@ export default function NotificationBell() {
                       onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
                       onMouseLeave={e => e.currentTarget.style.color = 'var(--text-soft)'}
                     >
-                      ✕
+                      <XMarkIcon style={{ width: 14, height: 14 }} />
                     </button>
                   </div>
                 )

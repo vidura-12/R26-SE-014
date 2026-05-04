@@ -27,7 +27,7 @@ export function FullPageSpinner() {
     }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
         <Spinner size="lg" />
-        <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: '0.82rem', color: 'var(--green-mid)' }}>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: '0.82rem', color: 'var(--green-mid)' }}>
           Loading…
         </p>
       </div>

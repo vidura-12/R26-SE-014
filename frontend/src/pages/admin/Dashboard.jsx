@@ -6,6 +6,17 @@ import { format } from 'date-fns'
 import { Link } from 'react-router-dom'
 import { OverviewMap } from '../../components/Map'
 import { useAuth } from '../../context/AuthContext'
+import {
+  UserIcon,
+  UserGroupIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  SparklesIcon,
+  CalendarDaysIcon,
+  BoltIcon,
+  ClipboardDocumentListIcon,
+  FaceSmileIcon,
+} from '@heroicons/react/24/outline'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
@@ -40,10 +51,10 @@ export default function AdminDashboard() {
   const recentSchedules = [...data.schedules].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6)
 
   const kpis = [
-    { icon: '🌾', color: 'green',  value: data.farmers.length, label: 'Registered Farmers',  badge: 'Total',    trend: 'neu' },
-    { icon: '👥', color: 'cinn',   value: data.peelers.length, label: 'Peeler Groups',        badge: 'Active',   trend: 'neu' },
-    { icon: '⏳', color: 'warn',   value: pending,             label: 'Pending Requests',     badge: pending > 0 ? 'Action needed' : 'All clear', trend: pending > 0 ? 'down' : 'neu' },
-    { icon: '✅', color: 'green',  value: completed,           label: 'Completed Harvests',   badge: 'Total',    trend: 'up' },
+    { Icon: UserIcon,         color: 'green',  value: data.farmers.length, label: 'Registered Farmers',  badge: 'Total',    trend: 'neu' },
+    { Icon: UserGroupIcon,    color: 'cinn',   value: data.peelers.length, label: 'Peeler Groups',        badge: 'Active',   trend: 'neu' },
+    { Icon: ClockIcon,        color: 'warn',   value: pending,             label: 'Pending Requests',     badge: pending > 0 ? 'Action needed' : 'All clear', trend: pending > 0 ? 'down' : 'neu' },
+    { Icon: CheckCircleIcon,  color: 'green',  value: completed,           label: 'Completed Harvests',   badge: 'Total',    trend: 'up' },
   ]
 
   return (
@@ -52,11 +63,11 @@ export default function AdminDashboard() {
       {/* Welcome Banner */}
       <div className="welcome-banner fade-in">
         <div>
-          <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>
-            {format(new Date(), 'EEEE, d MMMM yyyy')}
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginBottom: 4, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+            Admin
           </div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.4rem', color: 'white' }}>
-            {user?.name ?? 'Admin'} 👋
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: 'white', lineHeight: 1.2 }}>
+            Hi, {user?.name ?? 'Admin'} <FaceSmileIcon style={{ width: 22, height: 22, display: 'inline', verticalAlign: 'middle', color: '#f4c97a' }} />
           </div>
           <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginTop: 6 }}>
             {pending > 0 ? `${pending} harvest requests awaiting optimization.` : 'Everything looks good today.'}
@@ -69,7 +80,7 @@ export default function AdminDashboard() {
           fontSize: '0.78rem', color: 'rgba(255,255,255,0.75)',
         }}>
           <div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#5bb87e', lineHeight: 1 }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#5bb87e', lineHeight: 1 }}>
               {data.harvests.length}
             </div>
             <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
@@ -84,7 +95,7 @@ export default function AdminDashboard() {
         {kpis.map((k, i) => (
           <div className={`kpi-card fade-in d${i + 1}`} key={k.label}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div className={`kpi-icon ${k.color}`}>{k.icon}</div>
+              <div className={`kpi-icon ${k.color}`}><k.Icon style={{ width: 20, height: 20 }} /></div>
               <span className={`badge badge-${k.trend === 'up' ? 'green' : k.trend === 'down' ? 'danger' : 'soft'}`}>
                 {k.badge}
               </span>
@@ -128,10 +139,12 @@ export default function AdminDashboard() {
                     width: 40, height: 40, borderRadius: 10,
                     background: 'var(--cinnamon-bg)', border: '1px solid rgba(200,119,58,0.22)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1rem', flexShrink: 0,
-                  }}>🌿</div>
+                    flexShrink: 0,
+                  }}>
+                    <SparklesIcon style={{ width: 18, height: 18, color: 'var(--cinnamon)' }} />
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.86rem', color: 'var(--green-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.86rem', color: 'var(--green-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {h.plantationName}
                     </div>
                     <div style={{ fontSize: '0.73rem', color: 'var(--text-soft)', marginTop: 2 }}>
@@ -172,7 +185,7 @@ export default function AdminDashboard() {
                     border: '1px solid var(--border)', background: 'var(--off-white)',
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.84rem', color: 'var(--green-dark)' }}>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.84rem', color: 'var(--green-dark)' }}>
                         Week of {format(new Date(s.weekStartDate), 'MMM d')}
                       </div>
                       <StatusBadge status={s.status} />
@@ -188,21 +201,22 @@ export default function AdminDashboard() {
 
           {/* Quick Actions */}
           <div className="card fade-in d5">
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '0.88rem', color: 'var(--green-dark)', marginBottom: 12 }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.88rem', color: 'var(--green-dark)', marginBottom: 12 }}>
               Quick Actions
             </div>
             {[
-              { label: '🌾  Manage Farmers',      path: '/admin/farmers' },
-              { label: '👥  Peeler Groups',        path: '/admin/peelers' },
-              { label: '📅  Harvest Requests',     path: '/admin/harvests' },
-              { label: '⚡  Run Optimization',     path: '/admin/optimization' },
-              { label: '📋  View Schedules',       path: '/admin/schedules' },
+              { label: 'Manage Farmers',  Icon: UserIcon,                  path: '/admin/farmers' },
+              { label: 'Peeler Groups',   Icon: UserGroupIcon,              path: '/admin/peelers' },
+              { label: 'Harvest Requests',Icon: CalendarDaysIcon,           path: '/admin/harvests' },
+              { label: 'Run Optimization',Icon: BoltIcon,                   path: '/admin/optimization' },
+              { label: 'View Schedules',  Icon: ClipboardDocumentListIcon,  path: '/admin/schedules' },
             ].map(q => (
               <Link
                 key={q.path}
                 to={q.path}
                 style={{
-                  display: 'block', width: '100%', padding: '9px 14px', borderRadius: 10,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  width: '100%', padding: '9px 14px', borderRadius: 10,
                   border: '1px solid var(--border)', background: 'var(--off-white)',
                   fontSize: '0.82rem', fontWeight: 500, color: 'var(--text-mid)',
                   cursor: 'pointer', textAlign: 'left', transition: 'all .18s',
@@ -212,6 +226,7 @@ export default function AdminDashboard() {
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--mint)'; e.currentTarget.style.borderColor = 'var(--green-pale)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'var(--off-white)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
               >
+                <q.Icon style={{ width: 15, height: 15, flexShrink: 0, opacity: 0.7 }} />
                 {q.label}
               </Link>
             ))}
