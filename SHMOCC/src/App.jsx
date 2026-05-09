@@ -11,6 +11,7 @@ import Reports from "./pages/dashboard/Reports";
 import Profile from "./pages/dashboard/Profile";
 import Farmhistory from "./pages/dashboard/Farmhistory";
 import FarmMap from "./pages/FarmMap";
+import Cinnamon from "./pages/Cinnamon";
 
 
 // ── Auth guard: redirect to /login if no token ──────────────────────────────
@@ -51,6 +52,8 @@ export default function App() {
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/cinnamon" element={<Cinnamon />} /> 
       </Routes>
     </BrowserRouter>
   );
