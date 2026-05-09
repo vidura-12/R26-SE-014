@@ -50,6 +50,7 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const set = (key) => (e) => {
     const val = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -70,10 +71,18 @@ export default function Login() {
 
 const submit = async () => {
   if (!validate()) return;
+
   setLoading(true);
+
   try {
     await login(form.email, form.password);
-    nav("/dashboard");
+
+    setSuccess(true);
+
+    setTimeout(() => {
+      nav("/dashboard");
+    }, 2000);
+
   } catch (err) {
     setLoginError("Incorrect email or password. Please try again.");
     setLoading(false);
@@ -83,6 +92,79 @@ const submit = async () => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") submit();
   };
+
+  // ─── Success Screen ───────────────────────────────────────────────────────
+if (success) return (
+  <>
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+      * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+
+      @keyframes popIn {
+        0%   { opacity: 0; transform: scale(0.7); }
+        70%  { transform: scale(1.08); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .success-icon  { animation: popIn 0.6s cubic-bezier(.34,1.56,.64,1) both; }
+      .success-title { animation: fadeUp 0.5s ease 0.3s both; }
+      .success-sub   { animation: fadeUp 0.5s ease 0.45s both; }
+    `}</style>
+
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#f2faf5",
+      flexDirection: "column",
+      gap: 20,
+      padding: 24,
+    }}>
+
+      <div className="success-icon" style={{
+        width: 96,
+        height: 96,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg,#2d8a4e,#1a5c2e)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 44,
+        boxShadow: "0 12px 40px rgba(44,138,78,0.35)",
+      }}>
+        🌿
+      </div>
+
+      <h2 className="success-title" style={{
+        fontFamily: "'Playfair Display',serif",
+        fontSize: 32,
+        fontWeight: 900,
+        color: "#0f2d1a",
+        textAlign: "center",
+      }}>
+        Login Successful!
+      </h2>
+
+      <p className="success-sub" style={{
+        color: "#7aaa8a",
+        fontSize: 16,
+        textAlign: "center",
+        maxWidth: 360,
+        lineHeight: 1.6,
+      }}>
+        Welcome back to <strong style={{ color:"#1a5c2e" }}>CinnaPredict</strong>.
+        Redirecting to your dashboard...
+      </p>
+
+    </div>
+  </>
+);
 
   return (
     <>
