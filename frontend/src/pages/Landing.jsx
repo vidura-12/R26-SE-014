@@ -90,7 +90,7 @@ function Navbar({ nav }) {
         ))}
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <button onClick={() => nav("/login")} style={{ fontSize: 14, fontWeight: 600, color: "#1a5c2e", background: "none", border: "none", cursor: "pointer", padding: "8px 16px", borderRadius: 99 }}>Sign In</button>
+        <button onClick={() => nav("/login")} style={{ fontSize: 14, fontWeight: 600, color: "#1a5c2e", background: "none", border: "none", cursor: "pointer", padding: "8px 16px", borderRadius: 99 }}>Login</button>
         <button onClick={() => nav("/signup")} style={{ fontSize: 14, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#2d8a4e,#1a5c2e)", border: "none", padding: "10px 24px", borderRadius: 99, cursor: "pointer", boxShadow: "0 4px 16px rgba(44,138,78,0.4)" }}>Get Started</button>
       </div>
     </nav>
@@ -177,7 +177,7 @@ export default function Landing() {
                   Launch Dashboard →
                 </button>
                 <button onClick={() => nav("/login")} style={{ display:"inline-flex",alignItems:"center",gap:8,border:"2px solid rgba(44,138,78,0.35)",color:"#1a5c2e",fontWeight:600,fontSize:16,padding:"14px 32px",borderRadius:99,background:"white",cursor:"pointer" }}>
-                  Sign In
+                  Login
                 </button>
               </div>
             </div>
@@ -282,7 +282,7 @@ export default function Landing() {
                 Create Free Account →
               </button>
               <button onClick={() => nav("/login")} style={{ display:"inline-flex",alignItems:"center",gap:8,border:"2px solid rgba(255,255,255,0.35)",color:"white",fontWeight:600,fontSize:16,padding:"14px 32px",borderRadius:99,background:"transparent",cursor:"pointer" }}>
-                Existing User? Sign In
+                Existing User? 
               </button>
             </div>
           </div>
