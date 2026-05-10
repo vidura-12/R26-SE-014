@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_DEVICES = [
-  { id: "DEV-001", name: "North Field Sensor", location: "Matara Zone A", status: "online", battery: 87, lastSeen: "2 min ago" },
-  { id: "DEV-002", name: "South Slope Monitor", location: "Matara Zone B", status: "online", battery: 62, lastSeen: "5 min ago" },
-  { id: "DEV-003", name: "Riverside Station", location: "Galle Riverside", status: "offline", battery: 14, lastSeen: "3 hrs ago" },
-];
+import {
+  collection, addDoc, getDocs, deleteDoc,
+  doc, updateDoc, serverTimestamp,
+} from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { db, auth } from "../firebase";
+import { useAuth } from "../context/AuthContext";
 
 const MOCK_SENSOR = {
   temperature: 28.4,
@@ -67,21 +67,17 @@ function RiskGauge({ score }) {
   const color = score >= 80 ? "#e05252" : score >= 60 ? "#e08c52" : score >= 40 ? "#e8c84a" : "#2d8a4e";
   const label = score >= 80 ? "Critical" : score >= 60 ? "High" : score >= 40 ? "Medium" : "Low";
   const dashOffset = circumference * (1 - pct);
-
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <svg width="180" height="110" viewBox="0 0 180 110">
-        {/* Background arc */}
         <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
           fill="none" stroke="#e0ede5" strokeWidth="12" strokeLinecap="round" />
-        {/* Colored arc */}
         <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
           fill="none" stroke={color} strokeWidth="12" strokeLinecap="round"
           strokeDasharray={`${circumference}`}
           strokeDashoffset={dashOffset}
           style={{ transition: "stroke-dashoffset 1s ease, stroke 0.5s" }}
         />
-        {/* Score */}
         <text x={cx} y={cy - 12} textAnchor="middle" fontSize="32" fontWeight="800"
           fontFamily="'Playfair Display',serif" fill={color}>{score}</text>
         <text x={cx} y={cy + 8} textAnchor="middle" fontSize="12" fill="#5a8a6a"
@@ -93,14 +89,13 @@ function RiskGauge({ score }) {
   );
 }
 
-// ─── Sensor Card ──────────────────────────────────────────────────────────────
+// ─── Sensor Card (overview only) ──────────────────────────────────────────────
 function SensorCard({ icon, label, value, unit, sparkData, color, trend }) {
   return (
     <div style={{
       background: "white", borderRadius: 16, padding: "18px 20px",
       border: "1px solid rgba(44,138,78,0.1)",
-      boxShadow: "0 2px 12px rgba(26,92,46,0.06)",
-      transition: "all 0.3s",
+      boxShadow: "0 2px 12px rgba(26,92,46,0.06)", transition: "all 0.3s",
     }}
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(26,92,46,0.13)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(26,92,46,0.06)"; }}
@@ -125,7 +120,7 @@ function SensorCard({ icon, label, value, unit, sparkData, color, trend }) {
 }
 
 // ─── Device Card ──────────────────────────────────────────────────────────────
-function DeviceCard({ device, onRemove }) {
+function DeviceCard({ device, onRemove, removeLoading, onEdit, onViewSensor }) {
   const isOnline = device.status === "online";
   const battColor = device.battery > 50 ? "#2d8a4e" : device.battery > 20 ? "#e8c84a" : "#e05252";
   return (
@@ -166,10 +161,32 @@ function DeviceCard({ device, onRemove }) {
           color: isOnline ? "#1a5c2e" : "#e05252",
           textTransform: "uppercase", letterSpacing: "0.08em",
         }}>{device.status}</span>
-        <button onClick={() => onRemove(device.id)} style={{
-          fontSize: 11, padding: "3px 10px", borderRadius: 99, cursor: "pointer",
-          border: "1px solid #fca5a5", background: "white", color: "#e05252", fontWeight: 600,
-        }}>Remove</button>
+        {/* ── View Sensor Data button ── */}
+        <button
+          onClick={() => onViewSensor(device)}
+          style={{
+            fontSize: 11, padding: "3px 10px", borderRadius: 99, cursor: "pointer",
+            border: "1px solid #2d8a4e", background: "#e8f5ed", color: "#1a5c2e", fontWeight: 700,
+          }}>📊 Sensor Data</button>
+        <button
+          onClick={() => onEdit(device)}
+          style={{
+            fontSize: 11, padding: "3px 10px", borderRadius: 99, cursor: "pointer",
+            border: "1px solid #cde4d5", background: "white", color: "#1a5c2e", fontWeight: 600,
+          }}>✏️ Edit</button>
+        <button
+          onClick={() => onRemove(device.firestoreId)}
+          disabled={removeLoading}
+          style={{
+            fontSize: 11, padding: "3px 10px", borderRadius: 99,
+            cursor: removeLoading ? "not-allowed" : "pointer",
+            border: "1px solid #fca5a5", background: "white", color: "#e05252", fontWeight: 600,
+            display: "flex", alignItems: "center", gap: 4,
+          }}>
+          {removeLoading
+            ? <><div style={{ width:10,height:10,border:"1.5px solid #fca5a5",borderTop:"1.5px solid #e05252",borderRadius:"50%",animation:"spin 0.8s linear infinite" }}/> Removing</>
+            : "🗑 Remove"}
+        </button>
       </div>
     </div>
   );
@@ -190,8 +207,11 @@ function RiskBadge({ level }) {
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const nav = useNavigate();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
-  const [devices, setDevices] = useState(MOCK_DEVICES);
+  const [devices, setDevices] = useState([]);
+  const [devicesLoading, setDevicesLoading] = useState(true);
+  const [devicesError, setDevicesError] = useState("");
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [sensorData] = useState(MOCK_SENSOR);
   const [historyFilter, setHistoryFilter] = useState("all");
@@ -199,6 +219,12 @@ export default function Dashboard() {
   const [regErrors, setRegErrors] = useState({});
   const [regSuccess, setRegSuccess] = useState(false);
   const [regLoading, setRegLoading] = useState(false);
+  const [removeLoadingId, setRemoveLoadingId] = useState(null);
+  const [editDevice, setEditDevice] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editErrors, setEditErrors] = useState({});
+  const [editLoading, setEditLoading] = useState(false);
+  const [editSuccess, setEditSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const sparkTemp     = [26.1, 27.4, 26.8, 28.1, 27.9, 28.4, 28.4];
@@ -215,23 +241,55 @@ export default function Dashboard() {
     ? MOCK_HISTORY
     : MOCK_HISTORY.filter(h => h.level.toLowerCase() === historyFilter);
 
-  const registerDevice = () => {
+  // ── Load devices ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    const fetchDevices = async () => {
+      setDevicesLoading(true);
+      setDevicesError("");
+      try {
+        const devicesRef = collection(db, "users", currentUser.uid, "devices");
+        const snapshot = await getDocs(devicesRef);
+        const fetched = snapshot.docs
+          .map(d => ({ firestoreId: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        setDevices(fetched);
+      } catch (err) {
+        console.error("Failed to load devices:", err);
+        setDevicesError("Failed to load devices. Please refresh.");
+      } finally {
+        setDevicesLoading(false);
+      }
+    };
+    fetchDevices();
+  }, [currentUser]);
+
+  // ── Register device ───────────────────────────────────────────────────────
+  const registerDevice = async () => {
     const errs = {};
-    if (!newDevice.name.trim()) errs.name = "Device name is required";
+    if (!newDevice.name.trim())     errs.name     = "Device name is required";
     if (!newDevice.deviceId.trim()) errs.deviceId = "Device ID is required";
-    if (!newDevice.district) errs.district = "Select a district";
-    if (Object.keys(errs).length) { setRegErrors(errs); return; }
+    if (!newDevice.district)        errs.district = "Select a district";
+    if (Object.keys(errs).length)   { setRegErrors(errs); return; }
+    const duplicate = devices.find(d => d.deviceId === newDevice.deviceId.trim());
+    if (duplicate) { setRegErrors({ deviceId: "A device with this ID is already registered." }); return; }
     setRegLoading(true);
-    setTimeout(() => {
-      setDevices(prev => [...prev, {
-        id: newDevice.deviceId,
-        name: newDevice.name,
-        location: `${newDevice.district} — ${newDevice.location || "Field"}`,
-        status: "online",
-        battery: 100,
-        lastSeen: "just now",
-      }]);
-      setRegLoading(false);
+    try {
+      const deviceData = {
+        name:          newDevice.name.trim(),
+        deviceId:      newDevice.deviceId.trim(),
+        location:      newDevice.district + (newDevice.location ? " — " + newDevice.location : ""),
+        district:      newDevice.district,
+        fieldLocation: newDevice.location.trim(),
+        type:          newDevice.type,
+        status:        "online",
+        battery:       100,
+        lastSeen:      "just now",
+        createdAt:     serverTimestamp(),
+      };
+      const devicesRef = collection(db, "users", currentUser.uid, "devices");
+      const docRef = await addDoc(devicesRef, deviceData);
+      setDevices(prev => [{ firestoreId: docRef.id, ...deviceData, createdAt: new Date() }, ...prev]);
       setRegSuccess(true);
       setTimeout(() => {
         setRegSuccess(false);
@@ -239,12 +297,90 @@ export default function Dashboard() {
         setNewDevice({ name: "", deviceId: "", location: "", district: "", type: "Temperature & Humidity" });
         setActiveTab("devices");
       }, 1800);
-    }, 1200);
+    } catch (err) {
+      console.error("Register error:", err);
+      setRegErrors({ deviceId: "Failed to save. Check your connection and try again." });
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  // ── Remove device ─────────────────────────────────────────────────────────
+  const removeDevice = async (firestoreId) => {
+    setRemoveLoadingId(firestoreId);
+    try {
+      await deleteDoc(doc(db, "users", currentUser.uid, "devices", firestoreId));
+      setDevices(prev => prev.filter(d => d.firestoreId !== firestoreId));
+    } catch (err) {
+      console.error("Remove error:", err);
+      alert("Failed to remove device. Please try again.");
+    } finally {
+      setRemoveLoadingId(null);
+    }
+  };
+
+  // ── Open edit modal ───────────────────────────────────────────────────────
+  const openEdit = (device) => {
+    setEditDevice(device);
+    setEditForm({
+      name:          device.name || "",
+      deviceId:      device.deviceId || "",
+      district:      device.district || "",
+      fieldLocation: device.fieldLocation || "",
+      type:          device.type || "Temperature & Humidity",
+      status:        device.status || "online",
+    });
+    setEditErrors({});
+    setEditSuccess(false);
+  };
+
+  // ── Save edit ─────────────────────────────────────────────────────────────
+  const saveEdit = async () => {
+    const errs = {};
+    if (!editForm.name.trim())     errs.name     = "Device name is required";
+    if (!editForm.deviceId.trim()) errs.deviceId = "Device ID is required";
+    if (!editForm.district)        errs.district = "Please select a district";
+    if (Object.keys(errs).length)  { setEditErrors(errs); return; }
+    setEditLoading(true);
+    try {
+      const deviceRef = doc(db, "users", currentUser.uid, "devices", editDevice.firestoreId);
+      const updates = {
+        name:          editForm.name.trim(),
+        deviceId:      editForm.deviceId.trim(),
+        district:      editForm.district,
+        fieldLocation: editForm.fieldLocation.trim(),
+        location:      editForm.district + (editForm.fieldLocation ? " — " + editForm.fieldLocation : ""),
+        type:          editForm.type,
+        status:        editForm.status,
+        updatedAt:     serverTimestamp(),
+      };
+      await updateDoc(deviceRef, updates);
+      setDevices(prev => prev.map(d =>
+        d.firestoreId === editDevice.firestoreId ? { ...d, ...updates, updatedAt: new Date() } : d
+      ));
+      setEditSuccess(true);
+      setTimeout(() => { setEditDevice(null); setEditSuccess(false); }, 1600);
+    } catch (err) {
+      console.error("Edit error:", err);
+      setEditErrors({ name: "Failed to update. Please try again." });
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  // ── Navigate to Sensor Data page for a specific device ────────────────────
+  const goToSensorData = (device) => {
+    nav("/sensor-data", { state: { device } });
+  };
+
+  // ── Sign out ──────────────────────────────────────────────────────────────
+  const handleSignOut = async () => {
+    await signOut(auth);
+    nav("/login");
   };
 
   const NAV_ITEMS = [
     { id: "overview",  icon: "🏠", label: "Overview" },
-    { id: "sensors",   icon: "📊", label: "Sensor Data" },
     { id: "devices",   icon: "📡", label: "Devices" },
     { id: "history",   icon: "📋", label: "History" },
   ];
@@ -314,6 +450,22 @@ export default function Dashboard() {
                 {sidebarOpen && <span style={{ fontSize: 14, fontWeight: activeTab === item.id ? 700 : 500, color: activeTab === item.id ? "white" : "rgba(255,255,255,0.6)", whiteSpace: "nowrap" }}>{item.label}</span>}
               </button>
             ))}
+
+            {/* Sensor Data — goes to separate page, pick first device */}
+            <button className="tab-btn"
+              onClick={() => {
+                if (devices.length > 0) goToSensorData(devices[0]);
+                else { setActiveTab("devices"); setShowRegisterModal(true); }
+              }}
+              style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "11px 12px", borderRadius: 10, marginBottom: 4,
+                background: "transparent",
+                borderLeft: "3px solid transparent",
+              }}>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>📊</span>
+              {sidebarOpen && <span style={{ fontSize: 14, fontWeight: 500, color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap" }}>Sensor Data</span>}
+            </button>
           </nav>
 
           {/* Register device button */}
@@ -336,7 +488,7 @@ export default function Dashboard() {
             }}>
               {sidebarOpen ? "◀" : "▶"}
             </button>
-            <button onClick={() => nav("/login")} style={{
+            <button onClick={handleSignOut} style={{
               background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)",
               fontSize: 12, fontWeight: 600, padding: "8px 12px", borderRadius: 8, textAlign: "left", display: "flex", alignItems: "center", gap: 8,
             }}>
@@ -374,10 +526,9 @@ export default function Dashboard() {
           {/* ══ OVERVIEW ══ */}
           {activeTab === "overview" && (
             <div className="fade-up">
-              {/* Risk score + summary */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 24 }}>
-                {/* Risk gauge card */}
-                <div style={{ background: "white", borderRadius: 20, padding: 24, border: `1.5px solid ${riskCfg.border}`, boxShadow: "0 4px 20px rgba(26,92,46,0.08)", gridRow: "span 1" }}>
+                {/* Risk gauge */}
+                <div style={{ background: "white", borderRadius: 20, padding: 24, border: `1.5px solid ${riskCfg.border}`, boxShadow: "0 4px 20px rgba(26,92,46,0.08)" }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#7aaa8a", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Current Disease Risk</div>
                   <RiskGauge score={RISK_SCORE} />
                   <div style={{ marginTop: 16, padding: "12px 16px", background: riskCfg.bg, borderRadius: 10, border: `1px solid ${riskCfg.border}` }}>
@@ -425,7 +576,44 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Recent history preview */}
+              {/* Sensor Data quick-access cards */}
+              {devices.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#0f2d1a", marginBottom: 14 }}>📊 Live Sensor Monitoring</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
+                    {devices.map(device => (
+                      <div key={device.firestoreId}
+                        onClick={() => goToSensorData(device)}
+                        style={{
+                          background: "white", borderRadius: 16, padding: "18px 20px",
+                          border: "1.5px solid rgba(44,138,78,0.15)",
+                          boxShadow: "0 2px 12px rgba(26,92,46,0.06)",
+                          cursor: "pointer", transition: "all 0.25s",
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 10px 32px rgba(26,92,46,0.14)"; e.currentTarget.style.borderColor = "#2d8a4e"; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 12px rgba(26,92,46,0.06)"; e.currentTarget.style.borderColor = "rgba(44,138,78,0.15)"; }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 11, background: "#e8f5ed", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, position: "relative" }}>
+                            📡
+                            <div style={{ position: "absolute", top: -2, right: -2, width: 9, height: 9, borderRadius: "50%", background: device.status === "online" ? "#2d8a4e" : "#e05252", border: "2px solid white" }} />
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: "#0f2d1a" }}>{device.name}</div>
+                            <div style={{ fontSize: 12, color: "#7aaa8a" }}>📍 {device.location}</div>
+                          </div>
+                        </div>
+                        <div style={{ padding: "10px 14px", background: "linear-gradient(135deg,#e8f5ed,#f2fdf5)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: "#1a5c2e" }}>Open Sensor Data</span>
+                          <span style={{ fontSize: 18 }}>→</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent history */}
               <div style={{ background: "white", borderRadius: 20, padding: 24, border: "1px solid rgba(44,138,78,0.1)", boxShadow: "0 4px 20px rgba(26,92,46,0.08)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "#0f2d1a" }}>Recent Risk History</div>
@@ -442,7 +630,7 @@ export default function Dashboard() {
                     </thead>
                     <tbody>
                       {MOCK_HISTORY.slice(0, 4).map(row => (
-                        <tr key={row.date} className="history-row" style={{ borderTop: "1px solid #f2faf5", cursor: "default" }}>
+                        <tr key={row.date} className="history-row" style={{ borderTop: "1px solid #f2faf5" }}>
                           <td style={{ padding: "12px 16px 12px 0", fontSize: 14, color: "#2a5c3a", fontWeight: 600 }}>{row.date}</td>
                           <td style={{ padding: "12px 16px 12px 0" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -465,48 +653,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ══ SENSOR DATA ══ */}
-          {activeTab === "sensors" && (
-            <div className="fade-up">
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 24 }}>
-                <SensorCard icon="🌡️" label="Temperature" value={sensorData.temperature} unit="°C" sparkData={sparkTemp} color="#e08c52" trend={2.1} />
-                <SensorCard icon="💧" label="Humidity" value={sensorData.humidity} unit="%" sparkData={sparkHumidity} color="#3b82f6" trend={3.4} />
-                <SensorCard icon="🌧️" label="Rainfall (24h)" value={sensorData.rainfall} unit="mm" sparkData={sparkRain} color="#2d8a4e" trend={8.2} />
-                <SensorCard icon="🌱" label="Soil Moisture" value={sensorData.soilMoisture} unit="%" sparkData={sparkSoil} color="#7c5c2e" trend={-1.2} />
-                <SensorCard icon="💨" label="Wind Speed" value={sensorData.windSpeed} unit="km/h" sparkData={sparkWind} color="#5a8a6a" trend={0.8} />
-                <SensorCard icon="☀️" label="UV Index" value={sensorData.uvIndex} unit="" sparkData={sparkUV} color="#e8c84a" trend={-3.1} />
-              </div>
-
-              {/* Risk breakdown */}
-              <div style={{ background: "white", borderRadius: 20, padding: 28, border: "1px solid rgba(44,138,78,0.1)", boxShadow: "0 4px 20px rgba(26,92,46,0.08)" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#0f2d1a", marginBottom: 20 }}>Disease Risk Breakdown</div>
-                {[
-                  { disease: "Leaf Spot", risk: 78, driver: "High humidity + rainfall" },
-                  { disease: "Cinnamon Canker", risk: 52, driver: "Moderate temperature stress" },
-                  { disease: "Root Rot", risk: 34, driver: "Soil moisture within limits" },
-                  { disease: "Phytophthora", risk: 61, driver: "Excessive rainfall events" },
-                ].map(d => (
-                  <div key={d.disease} style={{ marginBottom: 18 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                      <div>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "#0f2d1a" }}>{d.disease}</span>
-                        <span style={{ fontSize: 12, color: "#7aaa8a", marginLeft: 10 }}>{d.driver}</span>
-                      </div>
-                      <RiskBadge level={d.risk >= 70 ? "High" : d.risk >= 50 ? "Medium" : "Low"} />
-                    </div>
-                    <div style={{ height: 8, background: "#e0ede5", borderRadius: 99, overflow: "hidden" }}>
-                      <div style={{
-                        width: `${d.risk}%`, height: "100%", borderRadius: 99, transition: "width 1s ease",
-                        background: d.risk >= 70 ? "#e08c52" : d.risk >= 50 ? "#e8c84a" : "#2d8a4e",
-                      }} />
-                    </div>
-                    <div style={{ fontSize: 11, color: "#9cb8a8", marginTop: 3 }}>{d.risk}% probability</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* ══ DEVICES ══ */}
           {activeTab === "devices" && (
             <div className="fade-up">
@@ -518,12 +664,17 @@ export default function Dashboard() {
                   fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(44,138,78,0.3)",
                 }}>+ Register New Device</button>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {devices.map(d => (
-                  <DeviceCard key={d.id} device={d} onRemove={(id) => setDevices(prev => prev.filter(d => d.id !== id))} />
-                ))}
-              </div>
-              {devices.length === 0 && (
+              {devicesLoading ? (
+                <div style={{ textAlign:"center", padding:"56px 24px", background:"white", borderRadius:20, border:"1px solid rgba(44,138,78,0.1)" }}>
+                  <div style={{ width:36,height:36,border:"3px solid #cde4d5",borderTop:"3px solid #2d8a4e",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 16px" }}/>
+                  <p style={{ fontSize:14,color:"#7aaa8a" }}>Loading your devices...</p>
+                </div>
+              ) : devicesError ? (
+                <div style={{ textAlign:"center", padding:"40px 24px", background:"#fff5f5", borderRadius:20, border:"1px solid #fca5a5" }}>
+                  <div style={{ fontSize:32, marginBottom:12 }}>⚠️</div>
+                  <p style={{ fontSize:14,color:"#e05252",fontWeight:600 }}>{devicesError}</p>
+                </div>
+              ) : devices.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "64px 24px", background: "white", borderRadius: 20, border: "2px dashed #cde4d5" }}>
                   <div style={{ fontSize: 48, marginBottom: 16 }}>📡</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: "#0f2d1a", marginBottom: 8 }}>No devices registered yet</div>
@@ -532,6 +683,19 @@ export default function Dashboard() {
                     Register First Device
                   </button>
                 </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {devices.map(d => (
+                    <DeviceCard
+                      key={d.firestoreId || d.deviceId}
+                      device={d}
+                      onRemove={removeDevice}
+                      removeLoading={removeLoadingId === d.firestoreId}
+                      onEdit={openEdit}
+                      onViewSensor={goToSensorData}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -539,7 +703,6 @@ export default function Dashboard() {
           {/* ══ HISTORY ══ */}
           {activeTab === "history" && (
             <div className="fade-up">
-              {/* Summary cards */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 24 }}>
                 {[
                   { label: "Avg Risk Score", val: "65", icon: "📊", color: "#e08c52" },
@@ -555,7 +718,6 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {/* Filter + table */}
               <div style={{ background: "white", borderRadius: 20, padding: 28, border: "1px solid rgba(44,138,78,0.1)", boxShadow: "0 4px 20px rgba(26,92,46,0.08)" }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
                   {["all", "critical", "high", "medium", "low"].map(f => (
@@ -570,7 +732,6 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
-
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ borderBottom: "2px solid #f2faf5" }}>
@@ -581,7 +742,7 @@ export default function Dashboard() {
                   </thead>
                   <tbody>
                     {filteredHistory.map(row => (
-                      <tr key={row.date} className="history-row" style={{ borderBottom: "1px solid #f2faf5", cursor: "default", transition: "background 0.15s" }}>
+                      <tr key={row.date} className="history-row" style={{ borderBottom: "1px solid #f2faf5" }}>
                         <td style={{ padding: "14px 16px 14px 0", fontSize: 14, fontWeight: 600, color: "#0f2d1a" }}>{row.date}</td>
                         <td style={{ padding: "14px 16px 14px 0" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -608,17 +769,104 @@ export default function Dashboard() {
         </main>
       </div>
 
+      {/* ══ EDIT DEVICE MODAL ══ */}
+      {editDevice && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(10,36,18,0.55)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 24,
+          animation: "fadeIn 0.2s ease",
+        }} onClick={(e) => { if (e.target === e.currentTarget && !editLoading) setEditDevice(null); }}>
+          <div style={{ background: "white", borderRadius: 24, width: "100%", maxWidth: 520, boxShadow: "0 24px 80px rgba(10,36,18,0.3)", maxHeight: "90vh", overflowY: "auto" }}>
+            {editSuccess ? (
+              <div style={{ padding: "56px 40px", textAlign: "center" }}>
+                <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, color: "#0f2d1a", marginBottom: 8 }}>Device Updated!</h3>
+                <p style={{ fontSize: 14, color: "#7aaa8a" }}>Your sensor details have been saved successfully.</p>
+              </div>
+            ) : (
+              <div style={{ padding: "32px 36px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+                  <div>
+                    <div style={{ fontSize: 28, marginBottom: 6 }}>✏️</div>
+                    <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 900, color: "#0f2d1a", marginBottom: 4 }}>Edit Device</h3>
+                    <p style={{ fontSize: 13, color: "#7aaa8a" }}>Update your sensor details below</p>
+                  </div>
+                  <button onClick={() => setEditDevice(null)} style={{ background: "#f2faf5", border: "none", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", fontSize: 18, color: "#5a8a6a", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Device Name *</label>
+                    <input value={editForm.name} onChange={e => { setEditForm(f => ({...f, name: e.target.value})); setEditErrors(f => ({...f, name: ""})); }}
+                      placeholder="e.g. North Field Temperature Sensor"
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, border: `1.5px solid ${editErrors.name ? "#e05252" : "#cde4d5"}`, outline: "none", background: "white", color: "#0f2d1a", boxSizing: "border-box" }} />
+                    {editErrors.name && <div style={{ fontSize: 12, color: "#e05252", marginTop: 4 }}>{editErrors.name}</div>}
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Device ID *</label>
+                    <input value={editForm.deviceId} onChange={e => { setEditForm(f => ({...f, deviceId: e.target.value})); setEditErrors(f => ({...f, deviceId: ""})); }}
+                      placeholder="e.g. DEV-001"
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, border: `1.5px solid ${editErrors.deviceId ? "#e05252" : "#cde4d5"}`, outline: "none", background: "white", color: "#0f2d1a", boxSizing: "border-box" }} />
+                    {editErrors.deviceId && <div style={{ fontSize: 12, color: "#e05252", marginTop: 4 }}>{editErrors.deviceId}</div>}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>District *</label>
+                      <select value={editForm.district} onChange={e => { setEditForm(f => ({...f, district: e.target.value})); setEditErrors(f => ({...f, district: ""})); }}
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, border: `1.5px solid ${editErrors.district ? "#e05252" : "#cde4d5"}`, outline: "none", background: "white", color: "#0f2d1a", boxSizing: "border-box" }}>
+                        <option value="">Select district</option>
+                        {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                      {editErrors.district && <div style={{ fontSize: 12, color: "#e05252", marginTop: 4 }}>{editErrors.district}</div>}
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Sensor Type</label>
+                      <select value={editForm.type} onChange={e => setEditForm(f => ({...f, type: e.target.value}))}
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, border: "1.5px solid #cde4d5", outline: "none", background: "white", color: "#0f2d1a", boxSizing: "border-box" }}>
+                        {["Temperature & Humidity","Rainfall","Soil Moisture","Wind Speed","Multi-Sensor"].map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Field Location / GPS (optional)</label>
+                    <input value={editForm.fieldLocation} onChange={e => setEditForm(f => ({...f, fieldLocation: e.target.value}))}
+                      placeholder="e.g. North Zone or 6.0367° N, 80.2170° E"
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, border: "1.5px solid #cde4d5", outline: "none", background: "white", color: "#0f2d1a", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 10 }}>Device Status</label>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      {["online", "offline"].map(s => (
+                        <button key={s} onClick={() => setEditForm(f => ({...f, status: s}))} style={{
+                          flex: 1, padding: "10px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer",
+                          border: `1.5px solid ${editForm.status === s ? (s === "online" ? "#2d8a4e" : "#e05252") : "#cde4d5"}`,
+                          background: editForm.status === s ? (s === "online" ? "#e8f5ed" : "#fff5f5") : "white",
+                          color: editForm.status === s ? (s === "online" ? "#1a5c2e" : "#e05252") : "#7aaa8a",
+                        }}>
+                          {s === "online" ? "🟢 Online" : "🔴 Offline"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+                    <button onClick={() => setEditDevice(null)} style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1.5px solid #cde4d5", background: "white", color: "#1a5c2e", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
+                    <button onClick={saveEdit} disabled={editLoading} style={{ flex: 2, padding: "12px", borderRadius: 10, border: "none", background: editLoading ? "#9cb8a8" : "linear-gradient(135deg,#2d8a4e,#1a5c2e)", color: "white", fontSize: 14, fontWeight: 700, cursor: editLoading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                      {editLoading ? <><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/> Saving...</> : "💾 Save Changes"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ══ REGISTER DEVICE MODAL ══ */}
       {showRegisterModal && (
         <div className="modal-overlay" style={{
           position: "fixed", inset: 0, background: "rgba(10,36,18,0.55)", backdropFilter: "blur(4px)",
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 24,
         }} onClick={(e) => { if (e.target === e.currentTarget) setShowRegisterModal(false); }}>
-          <div style={{
-            background: "white", borderRadius: 24, width: "100%", maxWidth: 520,
-            boxShadow: "0 24px 80px rgba(10,36,18,0.3)",
-            maxHeight: "90vh", overflowY: "auto",
-          }}>
+          <div style={{ background: "white", borderRadius: 24, width: "100%", maxWidth: 520, boxShadow: "0 24px 80px rgba(10,36,18,0.3)", maxHeight: "90vh", overflowY: "auto" }}>
             {regSuccess ? (
               <div style={{ padding: "56px 40px", textAlign: "center" }}>
                 <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
@@ -627,84 +875,55 @@ export default function Dashboard() {
               </div>
             ) : (
               <div style={{ padding: "32px 36px" }}>
-                {/* Modal header */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
                   <div>
                     <div style={{ fontSize: 28, marginBottom: 6 }}>📡</div>
                     <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 900, color: "#0f2d1a", marginBottom: 4 }}>Register New Device</h3>
                     <p style={{ fontSize: 13, color: "#7aaa8a" }}>Add a sensor to your plantation monitoring network</p>
                   </div>
-                  <button onClick={() => setShowRegisterModal(false)} style={{ background: "#f2faf5", border: "none", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", fontSize: 18, color: "#5a8a6a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</button>
+                  <button onClick={() => setShowRegisterModal(false)} style={{ background: "#f2faf5", border: "none", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", fontSize: 18, color: "#5a8a6a", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                 </div>
-
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {/* Device name */}
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>Device Name *</label>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Device Name *</label>
                     <input value={newDevice.name} onChange={e => { setNewDevice(p => ({...p, name: e.target.value})); setRegErrors(p => ({...p, name: ""})); }}
-                      placeholder="e.g. North Field Temperature Sensor"
-                      style={inputStyle(regErrors.name)} />
+                      placeholder="e.g. North Field Temperature Sensor" style={inputStyle(regErrors.name)} />
                     {regErrors.name && <div style={{ fontSize: 12, color: "#e05252", marginTop: 4 }}>{regErrors.name}</div>}
                   </div>
-
-                  {/* Device ID */}
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>Device ID *</label>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Device ID *</label>
                     <input value={newDevice.deviceId} onChange={e => { setNewDevice(p => ({...p, deviceId: e.target.value})); setRegErrors(p => ({...p, deviceId: ""})); }}
-                      placeholder="e.g. DEV-004 or serial number"
-                      style={inputStyle(regErrors.deviceId)} />
+                      placeholder="e.g. DEV-004 or serial number" style={inputStyle(regErrors.deviceId)} />
                     {regErrors.deviceId && <div style={{ fontSize: 12, color: "#e05252", marginTop: 4 }}>{regErrors.deviceId}</div>}
                   </div>
-
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                    {/* District */}
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>District *</label>
-                      <select value={newDevice.district} onChange={e => { setNewDevice(p => ({...p, district: e.target.value})); setRegErrors(p => ({...p, district: ""})); }}
-                        style={inputStyle(regErrors.district)}>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>District *</label>
+                      <select value={newDevice.district} onChange={e => { setNewDevice(p => ({...p, district: e.target.value})); setRegErrors(p => ({...p, district: ""})); }} style={inputStyle(regErrors.district)}>
                         <option value="">Select district</option>
                         {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
                       </select>
                       {regErrors.district && <div style={{ fontSize: 12, color: "#e05252", marginTop: 4 }}>{regErrors.district}</div>}
                     </div>
-
-                    {/* Sensor type */}
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>Sensor Type</label>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Sensor Type</label>
                       <select value={newDevice.type} onChange={e => setNewDevice(p => ({...p, type: e.target.value}))} style={inputStyle(false)}>
                         {["Temperature & Humidity","Rainfall","Soil Moisture","Wind Speed","Multi-Sensor"].map(t => <option key={t} value={t}>{t}</option>)}
                       </select>
                     </div>
                   </div>
-
-                  {/* Location / GPS */}
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>Field Location / GPS (optional)</label>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#1a5c2e", display: "block", marginBottom: 6 }}>Field Location / GPS (optional)</label>
                     <input value={newDevice.location} onChange={e => setNewDevice(p => ({...p, location: e.target.value}))}
-                      placeholder="e.g. North Zone or 6.0367° N, 80.2170° E"
-                      style={inputStyle(false)} />
+                      placeholder="e.g. North Zone or 6.0367° N, 80.2170° E" style={inputStyle(false)} />
                   </div>
-
-                  {/* Info box */}
                   <div style={{ padding: "12px 16px", background: "#f2fdf5", borderRadius: 10, border: "1px solid #cde4d5", display: "flex", gap: 10 }}>
-                    <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>💡</span>
-                    <p style={{ fontSize: 12, color: "#2a5c3a", lineHeight: 1.6 }}>
-                      The Device ID is printed on your sensor hardware. After registration, the device will begin sending data within 5 minutes.
-                    </p>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+                    <p style={{ fontSize: 12, color: "#2a5c3a", lineHeight: 1.6 }}>The Device ID is printed on your sensor hardware. After registration, the device will begin sending data within 5 minutes.</p>
                   </div>
-
-                  {/* Buttons */}
                   <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-                    <button onClick={() => setShowRegisterModal(false)} style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1.5px solid #cde4d5", background: "white", color: "#1a5c2e", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-                      Cancel
-                    </button>
-                    <button onClick={registerDevice} disabled={regLoading} style={{
-                      flex: 2, padding: "12px", borderRadius: 10, border: "none",
-                      background: regLoading ? "#9cb8a8" : "linear-gradient(135deg,#2d8a4e,#1a5c2e)",
-                      color: "white", fontSize: 14, fontWeight: 700, cursor: regLoading ? "not-allowed" : "pointer",
-                      boxShadow: "0 4px 14px rgba(44,138,78,0.3)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    }}>
+                    <button onClick={() => setShowRegisterModal(false)} style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1.5px solid #cde4d5", background: "white", color: "#1a5c2e", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
+                    <button onClick={registerDevice} disabled={regLoading} style={{ flex: 2, padding: "12px", borderRadius: 10, border: "none", background: regLoading ? "#9cb8a8" : "linear-gradient(135deg,#2d8a4e,#1a5c2e)", color: "white", fontSize: 14, fontWeight: 700, cursor: regLoading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                       {regLoading ? <><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Registering...</> : "📡 Register Device"}
                     </button>
                   </div>
