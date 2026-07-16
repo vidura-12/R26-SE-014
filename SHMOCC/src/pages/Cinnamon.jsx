@@ -63,6 +63,8 @@ export default function Cinnamon() {
   const [showCamera, setShowCamera] = useState(false);
   const [stream, setStream] = useState(null);
 
+  const [resultTab, setResultTab] = useState("grade");
+
   function handleFile(file) {
     if (!file || !file.type.startsWith("image/")) {
       setError("Please upload a valid JPG or PNG image.");
@@ -70,6 +72,7 @@ export default function Cinnamon() {
     }
     setError("");
     setResult(null);
+    setResultTab("grade");
     const url = URL.createObjectURL(file);
     setImage({ url, name: file.name, size: fmtBytes(file.size) });
   }
@@ -170,6 +173,7 @@ export default function Cinnamon() {
     setImage(null);
     setResult(null);
     setError("");
+    setResultTab("grade");
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -199,53 +203,85 @@ export default function Cinnamon() {
           Upload a cinnamon image to instantly detect and classify its grade, quality tier, and origin using visual analysis.
         </p>
 
-        <div
-          className={`border-2 border-dashed rounded border-gray-200 p-14 text-center cursor-pointer transition-all duration-200 relative outline-none
-            ${drag ? "border-amber-500 bg-amber-50" : "hover:border-amber-500 hover:bg-amber-50"}`}
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-          onDragLeave={() => setDrag(false)}
-          onDrop={handleDrop}
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/jpeg,image/png"
-            onChange={(e) => handleFile(e.target.files[0])}
-            className="hidden"
-          />
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleCameraChange}
-          />
+        {/* Dropzone + live preview share a single row so no space goes to waste */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-stretch">
+          <div
+            className={`border-2 border-dashed rounded border-gray-200 p-14 text-center cursor-pointer transition-all duration-200 relative outline-none
+              ${drag ? "border-amber-500 bg-amber-50" : "hover:border-amber-500 hover:bg-amber-50"}`}
+            onClick={() => inputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+            onDragLeave={() => setDrag(false)}
+            onDrop={handleDrop}
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={(e) => handleFile(e.target.files[0])}
+              className="hidden"
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleCameraChange}
+            />
 
-          {/* Upload icon */}
-          <div className="w-11 h-11 border border-gray-200 rounded flex items-center justify-center mx-auto mb-4 text-amber-600">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            {/* Upload icon */}
+            <div className="w-11 h-11 border border-gray-200 rounded flex items-center justify-center mx-auto mb-4 text-amber-600">
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <p className="font-serif text-xl font-medium text-green-900 mb-1">Upload Cinnamon Image</p>
+            <p className="text-sm text-gray-500 leading-relaxed">Drag & drop, click to browse, or take a photo</p>
+            <div className="inline-flex gap-1.5 mt-4">
+              {["JPG", "PNG"].map((fmt) => (
+                <span key={fmt} className="font-mono text-[10px] tracking-widest px-2 py-0.5 border border-gray-200 rounded-sm text-gray-500 uppercase">{fmt}</span>
+              ))}
+            </div>
+            <div className="mt-4">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 text-white text-sm font-medium rounded cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={handleCameraClick}
+              >
+                <span role="img" aria-label="camera">📸</span> Take Photo
+              </button>
+            </div>
           </div>
-          <p className="font-serif text-xl font-medium text-green-900 mb-1">Upload Cinnamon Image</p>
-          <p className="text-sm text-gray-500 leading-relaxed">Drag & drop, click to browse, or take a photo</p>
-          <div className="inline-flex gap-1.5 mt-4">
-            {["JPG", "PNG"].map((fmt) => (
-              <span key={fmt} className="font-mono text-[10px] tracking-widest px-2 py-0.5 border border-gray-200 rounded-sm text-gray-500 uppercase">{fmt}</span>
-            ))}
-          </div>
-          <div className="mt-4">
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 text-white text-sm font-medium rounded cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={handleCameraClick}
-            >
-              <span role="img" aria-label="camera">📸</span> Take Photo
-            </button>
+
+          {/* Sample card — mirrors the dropzone's height and holds the live preview */}
+          <div className={`rounded border p-5 flex flex-col transition-colors duration-200 ${image ? "border-amber-200 bg-amber-50" : "border-dashed border-gray-200 bg-stone-50"}`}>
+            {image ? (
+              <>
+                <p className="font-mono text-[10px] tracking-widest uppercase text-amber-600 mb-3">Sample Preview</p>
+                <div className="relative rounded overflow-hidden border border-amber-200 bg-white aspect-square mb-3">
+                  <img src={image.url} className="w-full h-full object-cover" alt="preview" />
+                  <button
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/90 text-gray-500 hover:text-gray-800 text-base leading-none flex items-center justify-center border border-gray-200 cursor-pointer transition-colors"
+                    onClick={(e) => { e.stopPropagation(); reset(); }}
+                  >×</button>
+                </div>
+                <p className="font-mono text-[11px] text-gray-400 mt-0.5">{image.size}</p>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
+                <div className="w-9 h-9 border border-gray-200 rounded flex items-center justify-center text-gray-300">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400">No Sample Yet</p>
+                <p className="text-[11px] text-gray-400 max-w-[160px]">Your image will preview here once uploaded</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -263,21 +299,6 @@ export default function Cinnamon() {
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Preview strip */}
-        {image && (
-          <div className="mt-5 flex items-center gap-4 px-4 py-3.5 border border-amber-200 rounded bg-amber-50">
-            <img src={image.url} className="w-14 h-14 rounded object-cover border border-amber-200" alt="preview" />
-            <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-green-900 truncate max-w-[280px]">{image.name}</p>
-              <p className="font-mono text-[11px] text-gray-400 mt-0.5">{image.size}</p>
-            </div>
-            <button
-              className="text-gray-400 hover:text-gray-700 text-lg leading-none p-1 bg-transparent border-none cursor-pointer transition-colors"
-              onClick={(e) => { e.stopPropagation(); reset(); }}
-            >×</button>
           </div>
         )}
 
@@ -312,19 +333,10 @@ export default function Cinnamon() {
           )}
         </button>
 
-        {/* Result image */}
-        {result && image && (
-          <div className="mt-7 border border-amber-200 rounded overflow-hidden">
-            <img src={image.url} alt="Analysed cinnamon" className="w-3/5 h-[480px] max-w-full object-contain block mx-auto bg-gray-50 rounded-md" />
-            <div className="px-3.5 py-2.5 flex items-center gap-2 border-t border-amber-200 bg-amber-50 font-mono text-[11px] text-gray-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-              Analysis complete — {image.name}
-            </div>
-          </div>
-        )}
+
       </section>
 
-      {/* ── RESULT SECTION ── */}
+      {/* ── RESULT SECTION (tabbed: Grade / Description / Market Price) ── */}
       {result && (() => {
         const isMixed = result.status === "Mixed Grades Detected";
         const finalGrade = result.final_grade;
@@ -335,148 +347,148 @@ export default function Cinnamon() {
         const totalQuills = detailEntries.reduce((s, [, v]) => s + v, 0);
         const isSingleQuill = totalQuills === 1;
 
+        const TABS = [
+          { id: "grade", label: "Cinnamon Grade", icon: "🌿" },
+          { id: "description", label: "Grade Description", icon: "📋" },
+          ...(forecast ? [{ id: "market", label: "Market Price", icon: "📈" }] : []),
+        ];
+
         return (
-          <>
-            {/* ── SUMMARY ── */}
-            <section className="py-14 px-4">
-              <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
-                00 — Analysis Result
-                <span className="flex-1 h-px bg-gray-200" />
-              </div>
+          <section className="py-14 px-4">
+            <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
+              Analysis Result
+              <span className="flex-1 h-px bg-gray-200" />
+            </div>
 
-              {/* Status banner */}
-              <div className={`flex items-center justify-between px-5 py-4 rounded border mb-6 ${isMixed ? "bg-orange-50 border-orange-200" : "bg-emerald-50 border-emerald-200"}`}>
-                <div className="flex items-center gap-3">
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isMixed ? "bg-orange-400" : "bg-emerald-500"}`} />
-                  <p className={`font-mono text-[11px] tracking-widest uppercase font-medium ${isMixed ? "text-orange-700" : "text-emerald-700"}`}>
-                    {isSingleQuill ? `${finalGrade} Single Quill` : result.status}
-                  </p>
-                </div>
-                <span className={`font-mono text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-sm border ${isMixed ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"}`}>
-                  {
-                        isSingleQuill
-                        ? "Single Quill"
-                        : isMixed
-                        ? "Mixed Bundle"
-                        : "Pure Bundle"
-                    }
-                </span>
-              </div>
-
-              {/* Top stat cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 border border-gray-200 rounded overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
-                {/* Final Grade */}
-                <div className="p-7 bg-white">
-                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">Final Grade</p>
-                  <p className={`font-serif text-4xl font-medium tracking-tight leading-none mb-1.5 ${colors.text}`}>{finalGrade}</p>
-                  <p className="text-xs text-gray-500 leading-snug">{gradeInfo.quality} quality tier</p>
-                </div>
-                {/* Total Quills */}
-                <div className="p-7 bg-white">
-                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">Total Quills Detected</p>
-                  <p className="font-serif text-4xl font-medium text-green-900 tracking-tight leading-none mb-1.5">{totalQuills}</p>
-                  <p className="text-xs text-gray-500">{isMixed ? `${detailEntries.length} grade types found` : "All same grade"}</p>
-                </div>
-                {/* Motivation Caption */}
-                <div className="p-7 bg-white">
-                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">
-                    Insight
+            {/* Status banner */}
+            <div className={`flex items-center justify-between px-5 py-4 rounded border mb-6 ${isMixed ? "bg-orange-50 border-orange-200" : "bg-emerald-50 border-emerald-200"}`}>
+              <div className="flex items-center gap-3">
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isMixed ? "bg-orange-400" : "bg-emerald-500"}`} />
+                <p className={`font-mono text-[11px] tracking-widest uppercase font-medium ${isMixed ? "text-orange-700" : "text-emerald-700"}`}>
+                  {isSingleQuill ? `${finalGrade} Single Quill` : result.status}
                 </p>
-
-                <p className="font-serif text-lg font-medium text-green-900 leading-snug">
-                    {finalGrade === "Alba" && "Top-tier cinnamon — highest value, rare quality, and premium market price."}
-                    {finalGrade === "C5" && "High-value grade — excellent quality with strong export demand."}
-                    {finalGrade === "C4" && "Mid-range grade — balanced quality suitable for commercial use."}
-                    {finalGrade === "H2" && "Lower grade — mainly used for bulk and industrial purposes."}
-                </p>
-
-                <p className="text-xs text-gray-500 leading-snug mt-1">
-                    Based on grade value hierarchy
-                </p>
-                </div>
               </div>
-            </section>
+              <span className={`font-mono text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-sm border ${isMixed ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"}`}>
+                {isSingleQuill ? "Single Quill" : isMixed ? "Mixed Bundle" : "Pure Bundle"}
+              </span>
+            </div>
 
-            {/* ── GRADE BREAKDOWN ── */}
-            <section className="py-14 px-4">
-              <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
-                01 — Grade Breakdown
-                <span className="flex-1 h-px bg-gray-200" />
-              </div>
+            {/* Segmented tab control */}
+            <div className="inline-flex flex-wrap gap-1 p-1 rounded-lg border border-gray-200 bg-stone-50 mb-7">
+              {TABS.map((t) => {
+                const active = resultTab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setResultTab(t.id)}
+                    className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-md text-sm font-medium transition-all duration-200
+                      ${active
+                        ? "bg-amber-600 text-white shadow-sm"
+                        : "text-gray-500 hover:text-green-900 hover:bg-white"}`}
+                  >
+                    <span className="text-base leading-none">{t.icon}</span>
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
 
-              {/* Distribution bar */}
-              {isMixed && (
-                <div className="mb-6 border border-gray-200 rounded p-5 bg-white">
-                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-3">Bundle Composition</p>
-                  <div className="flex h-3 rounded overflow-hidden gap-px">
-                    {detailEntries.map(([grade, count]) => {
-                      const col = GRADE_COLORS[grade] || GRADE_COLORS["H2"];
-                      return (
-                        <div
-                          key={grade}
-                          className={`${col.bar} transition-all duration-700`}
-                          style={{ width: `${(count / totalQuills) * 100}%` }}
-                          title={`${grade}: ${count}`}
-                        />
-                      );
-                    })}
+            {/* ── TAB: CINNAMON GRADE ── */}
+            {resultTab === "grade" && (
+              <div>
+                {/* Top stat cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 border border-gray-200 rounded overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-gray-200 mb-6">
+                  <div className="p-7 bg-white">
+                    <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">Final Grade</p>
+                    <p className={`font-serif text-4xl font-medium tracking-tight leading-none mb-1.5 ${colors.text}`}>{finalGrade}</p>
+                    <p className="text-xs text-gray-500 leading-snug">{gradeInfo.quality} quality tier</p>
                   </div>
-                  <div className="flex flex-wrap gap-4 mt-3">
-                    {detailEntries.map(([grade, count]) => {
-                      const col = GRADE_COLORS[grade] || GRADE_COLORS["H2"];
-                      return (
-                        <div key={grade} className="flex items-center gap-1.5">
-                          <span className={`w-2.5 h-2.5 rounded-sm ${col.bar}`} />
-                          <span className="font-mono text-[11px] text-gray-600">{grade} — {count} quill{count > 1 ? "s" : ""} ({Math.round((count / totalQuills) * 100)}%)</span>
-                        </div>
-                      );
-                    })}
+                  <div className="p-7 bg-white">
+                    <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">Total Quills Detected</p>
+                    <p className="font-serif text-4xl font-medium text-green-900 tracking-tight leading-none mb-1.5">{totalQuills}</p>
+                    <p className="text-xs text-gray-500">{isMixed ? `${detailEntries.length} grade types found` : "All same grade"}</p>
+                  </div>
+                  <div className="p-7 bg-white">
+                    <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2.5">Insight</p>
+                    <p className="font-serif text-lg font-medium text-green-900 leading-snug">
+                      {finalGrade === "Alba" && "Top-tier cinnamon — highest value, rare quality, and premium market price."}
+                      {finalGrade === "C5" && "High-value grade — excellent quality with strong export demand."}
+                      {finalGrade === "C4" && "Mid-range grade — balanced quality suitable for commercial use."}
+                      {finalGrade === "H2" && "Lower grade — mainly used for bulk and industrial purposes."}
+                    </p>
+                    <p className="text-xs text-gray-500 leading-snug mt-1">Based on grade value hierarchy</p>
                   </div>
                 </div>
-              )}
 
-              {/* Per-grade detail rows */}
-              <div className="flex flex-col gap-3">
-                {detailEntries.map(([grade, count]) => {
-                  const info = GRADE_DATA[grade] || {};
-                  const col = GRADE_COLORS[grade] || GRADE_COLORS["H2"];
-                  const isPrimary = grade === finalGrade;
-                  return (
-                    <div key={grade} className={`border rounded p-5 ${isPrimary ? `${col.bg} ${col.border}` : "bg-white border-gray-200"}`}>
-                      <div className="flex items-start justify-between gap-4 flex-wrap">
-                        <div className="flex items-center gap-3">
-                          <span className={`font-serif text-2xl font-medium tracking-tight ${col.text}`}>{grade}</span>
-                          {isPrimary && (
-                            <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm border ${col.badge}`}>
-                              Final Grade
-                            </span>
-                          )}
-                          <span className="font-mono text-[10px] tracking-widest uppercase px-2 py-0.5 rounded-sm border border-gray-200 bg-gray-50 text-gray-500">
-                            {info.quality}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-serif text-3xl font-medium leading-none ${col.text}`}>{count}</p>
-                          <p className="font-mono text-[10px] text-gray-400 mt-0.5">quill{count > 1 ? "s" : ""} detected</p>
-                        </div>
-                      </div>
-                      <p className="text-[13px] leading-relaxed text-gray-600 mt-3">{info.description}</p>
-                      <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-gray-100">
-                        <span className="text-[11px] text-gray-500"><span className="font-medium text-gray-700">Thickness:</span> {info.thickness}</span>
-                        <span className="text-[11px] text-gray-500"><span className="font-medium text-gray-700">Origin:</span> {info.origin}</span>
-                      </div>
+                {/* Distribution bar */}
+                {isMixed && (
+                  <div className="mb-6 border border-gray-200 rounded p-5 bg-white">
+                    <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-3">Bundle Composition</p>
+                    <div className="flex h-3 rounded overflow-hidden gap-px">
+                      {detailEntries.map(([grade, count]) => {
+                        const col = GRADE_COLORS[grade] || GRADE_COLORS["H2"];
+                        return (
+                          <div
+                            key={grade}
+                            className={`${col.bar} transition-all duration-700`}
+                            style={{ width: `${(count / totalQuills) * 100}%` }}
+                            title={`${grade}: ${count}`}
+                          />
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
-            </section>
+                    <div className="flex flex-wrap gap-4 mt-3">
+                      {detailEntries.map(([grade, count]) => {
+                        const col = GRADE_COLORS[grade] || GRADE_COLORS["H2"];
+                        return (
+                          <div key={grade} className="flex items-center gap-1.5">
+                            <span className={`w-2.5 h-2.5 rounded-sm ${col.bar}`} />
+                            <span className="font-mono text-[11px] text-gray-600">{grade} — {count} quill{count > 1 ? "s" : ""} ({Math.round((count / totalQuills) * 100)}%)</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-            {/* ── ORIGIN CARD ── */}
-            <section className="py-14 px-4">
-              <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
-                02 — Classification Details
-                <span className="flex-1 h-px bg-gray-200" />
+                {/* Per-grade detail rows */}
+                <div className="flex flex-col gap-3">
+                  {detailEntries.map(([grade, count]) => {
+                    const info = GRADE_DATA[grade] || {};
+                    const col = GRADE_COLORS[grade] || GRADE_COLORS["H2"];
+                    const isPrimary = grade === finalGrade;
+                    return (
+                      <div key={grade} className={`border rounded p-5 ${isPrimary ? `${col.bg} ${col.border}` : "bg-white border-gray-200"}`}>
+                        <div className="flex items-start justify-between gap-4 flex-wrap">
+                          <div className="flex items-center gap-3">
+                            <span className={`font-serif text-2xl font-medium tracking-tight ${col.text}`}>{grade}</span>
+                            {isPrimary && (
+                              <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm border ${col.badge}`}>
+                                Final Grade
+                              </span>
+                            )}
+                            <span className="font-mono text-[10px] tracking-widest uppercase px-2 py-0.5 rounded-sm border border-gray-200 bg-gray-50 text-gray-500">
+                              {info.quality}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-serif text-3xl font-medium leading-none ${col.text}`}>{count}</p>
+                            <p className="font-mono text-[10px] text-gray-400 mt-0.5">quill{count > 1 ? "s" : ""} detected</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-gray-100">
+                          <span className="text-[11px] text-gray-500"><span className="font-medium text-gray-700">Thickness:</span> {info.thickness}</span>
+                          <span className="text-[11px] text-gray-500"><span className="font-medium text-gray-700">Origin:</span> {info.origin}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            )}
+
+            {/* ── TAB: GRADE DESCRIPTION ── */}
+            {resultTab === "description" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 border border-gray-200 rounded overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
                 <div className="p-7 bg-white">
                   <h3 className="font-serif text-xl font-medium text-green-900 tracking-tight mb-2.5">Grade Description</h3>
@@ -496,104 +508,71 @@ export default function Cinnamon() {
                   </span>
                 </div>
               </div>
-            </section>
+            )}
 
-      {/* ── MARKET PRICE FORECAST ── */}
-      {forecast && (
-      <section className="py-14 px-4">
-        <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
-          03 — Market Price Forecast
-          <span className="flex-1 h-px bg-gray-200" />
-        </div>
+            {/* ── TAB: MARKET PRICE ── */}
+            {resultTab === "market" && forecast && (
 
-        {[
-          {
-            title: "This Week",
-            data: forecast.this_week,
-          },
-          {
-            title: "Next Week",
-            data: forecast.next_week,
-          },
-          {
-            title: "Next Month",
-            data: forecast.next_month,
-          },
-        ].map((item) => (
-          <div
-            key={item.title}
-            className="border border-gray-200 rounded-lg bg-white mb-8 overflow-hidden shadow-sm"
-          >
-            {/* Header */}
-            <div className="bg-green-50 border-b border-green-100 px-6 py-5">
-              <p className="font-mono text-[10px] tracking-widest uppercase text-green-700">
-                {item.title}
-              </p>
+            forecast.available === false ? (
 
-              <h3 className="font-serif text-2xl text-green-900 mt-1">
-                {item.data.forecast_period}
-              </h3>
-            </div>
-
-            {/* Best Market */}
-            <div className="grid md:grid-cols-2 gap-6 p-6">
-
-              <div>
-                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2">
-                  Best Market
-                </p>
-
-                <h3 className="font-serif text-3xl text-amber-600">
-                  {item.data.best_market.district}
+              <div className="border border-orange-200 bg-orange-50 rounded-lg p-6">
+                <h3 className="font-serif text-2xl text-orange-700 mb-3">
+                  Market Price Forecast Unavailable
                 </h3>
 
-                <p className="text-lg text-green-900 mt-2 font-semibold">
-                  LKR {item.data.best_market.predicted_price.toLocaleString()}
-                  <span className="text-sm text-gray-500">
-                    {" "}
-                    /kg
-                  </span>
-                </p>
-
-                <p className="text-sm text-gray-600 mt-4 leading-relaxed">
-                  {item.data.recommendation}
+                <p className="text-gray-700">
+                  {forecast.message}
                 </p>
               </div>
 
-              {/* Other Markets */}
+            ) : (
               <div>
-                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-4">
-                  Other Market Prices
-                </p>
-
-                <div className="space-y-2">
-
-                  {item.data.market_predictions.map((market) => (
-                    <div
-                      key={market.district}
-                      className="flex justify-between items-center border-b border-gray-100 py-2"
-                    >
-                      <span className="text-gray-700">
-                        {market.district}
-                      </span>
-
-                      <span className="font-semibold text-green-900">
-                        LKR {market.predicted_price.toLocaleString()}
-                      </span>
+                {[
+                  { title: "This Week", data: forecast.this_week },
+                  { title: "Next Week", data: forecast.next_week },
+                  { title: "Next Month", data: forecast.next_month },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="border border-gray-200 rounded-lg bg-white mb-6 overflow-hidden shadow-sm"
+                  >
+                    <div className="bg-green-50 border-b border-green-100 px-6 py-5">
+                      <p className="font-mono text-[10px] tracking-widest uppercase text-green-700">{item.title}</p>
+                      <h3 className="font-serif text-2xl text-green-900 mt-1">{item.data.forecast_period}</h3>
                     </div>
-                  ))}
 
-                </div>
+                    <div className="grid md:grid-cols-2 gap-6 p-6">
+                      <div>
+                        <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2">Best Market</p>
+                        <h3 className="font-serif text-3xl text-amber-600">{item.data.best_market.district}</h3>
+                        <p className="text-lg text-green-900 mt-2 font-semibold">
+                          LKR {item.data.best_market.predicted_price.toLocaleString()}
+                          <span className="text-sm text-gray-500"> /kg</span>
+                        </p>
+                        <p className="text-sm text-gray-600 mt-4 leading-relaxed">{item.data.recommendation}</p>
+                      </div>
+
+                      <div>
+                        <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-4">Other Market Prices</p>
+                        <div className="space-y-2">
+                          {item.data.market_predictions.map((market) => (
+                            <div key={market.district} className="flex justify-between items-center border-b border-gray-100 py-2">
+                              <span className="text-gray-700">{market.district}</span>
+                              <span className="font-semibold text-green-900">LKR {market.predicted_price.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-
-            </div>
-          </div>
-        ))}
-      </section>
-      )}
-          </>
+            )
+            )}
+          </section>
         );
       })()}
+      
 
       {/* ── CINNAMON IMAGES ── */}
       <section className="py-14 px-4">
