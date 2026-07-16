@@ -328,6 +328,7 @@ export default function Cinnamon() {
       {result && (() => {
         const isMixed = result.status === "Mixed Grades Detected";
         const finalGrade = result.final_grade;
+        const forecast = result.market_price_forecast;
         const gradeInfo = GRADE_DATA[finalGrade] || {};
         const colors = GRADE_COLORS[finalGrade] || GRADE_COLORS["H2"];
         const detailEntries = Object.entries(result.details);
@@ -496,6 +497,100 @@ export default function Cinnamon() {
                 </div>
               </div>
             </section>
+
+      {/* ── MARKET PRICE FORECAST ── */}
+      {forecast && (
+      <section className="py-14 px-4">
+        <div className="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.15em] uppercase text-gray-400 mb-6">
+          03 — Market Price Forecast
+          <span className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        {[
+          {
+            title: "This Week",
+            data: forecast.this_week,
+          },
+          {
+            title: "Next Week",
+            data: forecast.next_week,
+          },
+          {
+            title: "Next Month",
+            data: forecast.next_month,
+          },
+        ].map((item) => (
+          <div
+            key={item.title}
+            className="border border-gray-200 rounded-lg bg-white mb-8 overflow-hidden shadow-sm"
+          >
+            {/* Header */}
+            <div className="bg-green-50 border-b border-green-100 px-6 py-5">
+              <p className="font-mono text-[10px] tracking-widest uppercase text-green-700">
+                {item.title}
+              </p>
+
+              <h3 className="font-serif text-2xl text-green-900 mt-1">
+                {item.data.forecast_period}
+              </h3>
+            </div>
+
+            {/* Best Market */}
+            <div className="grid md:grid-cols-2 gap-6 p-6">
+
+              <div>
+                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2">
+                  Best Market
+                </p>
+
+                <h3 className="font-serif text-3xl text-amber-600">
+                  {item.data.best_market.district}
+                </h3>
+
+                <p className="text-lg text-green-900 mt-2 font-semibold">
+                  LKR {item.data.best_market.predicted_price.toLocaleString()}
+                  <span className="text-sm text-gray-500">
+                    {" "}
+                    /kg
+                  </span>
+                </p>
+
+                <p className="text-sm text-gray-600 mt-4 leading-relaxed">
+                  {item.data.recommendation}
+                </p>
+              </div>
+
+              {/* Other Markets */}
+              <div>
+                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-4">
+                  Other Market Prices
+                </p>
+
+                <div className="space-y-2">
+
+                  {item.data.market_predictions.map((market) => (
+                    <div
+                      key={market.district}
+                      className="flex justify-between items-center border-b border-gray-100 py-2"
+                    >
+                      <span className="text-gray-700">
+                        {market.district}
+                      </span>
+
+                      <span className="font-semibold text-green-900">
+                        LKR {market.predicted_price.toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        ))}
+      </section>
+      )}
           </>
         );
       })()}
