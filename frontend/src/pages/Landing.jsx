@@ -161,9 +161,6 @@ export default function Landing() {
           <div className="blob2" />
           <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }}>
             <div>
-              <div className="fade-up" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#e8f5ed", border: "1px solid rgba(44,138,78,0.3)", borderRadius: 99, padding: "6px 16px", fontSize: 12, fontWeight: 600, color: "#1a5c2e", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
-                <span className="badge-dot" /> Research Project · University of Sri Lanka
-              </div>
               <h1 className="fade-up-1" style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(52px,7vw,88px)", lineHeight: 1.02, color: "#0f2d1a", marginBottom: 24, fontWeight: 900 }}>
                 Ceylon<br/>
                 <span style={{ color: "#1a5c2e" }}>Cinnamon</span><br/>
