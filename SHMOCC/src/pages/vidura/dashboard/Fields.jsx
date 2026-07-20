@@ -2,173 +2,9 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import axios from "axios";
-
+import "./Fields.css";
 import "leaflet/dist/leaflet.css";
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  #field-root {
-    font-family: 'Syne', sans-serif;
-    background: #080f0a;
-    min-height: 100vh;
-    padding: 14px;
-    color: #e2efe8;
-  }
-  .fld-header {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 12px; gap: 12px; flex-wrap: wrap;
-  }
-  .fld-brand { display: flex; align-items: center; gap: 10px; }
-  .fld-brand-icon {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, #1a5c30, #2ecc71);
-    border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; box-shadow: 0 0 16px #2ecc7133;
-  }
-  .fld-title { font-size: 1.25rem; font-weight: 800; color: #e2efe8; letter-spacing: -0.3px; line-height: 1; }
-  .fld-sub   { font-size: 0.6rem; color: #3a6b4a; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 2px; }
-  .fld-reg-btn {
-    padding: 8px 18px; border-radius: 8px;
-    background: linear-gradient(135deg, #1a5c30, #2ecc71);
-    color: #fff; border: none; font-weight: 700; font-family: 'Syne', sans-serif;
-    cursor: pointer; font-size: 0.82rem; box-shadow: 0 0 20px #2ecc7133; transition: all 0.2s;
-  }
-  .fld-reg-btn:hover { box-shadow: 0 0 30px #2ecc7155; transform: translateY(-1px); }
-
-  .fld-map-wrap {
-    position: relative; border-radius: 14px; overflow: hidden;
-    box-shadow: 0 0 0 1px #1a3025, 0 20px 60px #000c;
-  }
-  #map { height: 83vh; width: 100%; display: block; background: #080f0a; }
-
-  .fld-panel {
-    position: absolute; top: 12px; right: 12px; z-index: 1000;
-    background: rgba(8,15,10,0.94); backdrop-filter: blur(16px);
-    border: 1px solid #1e3828; border-radius: 12px; padding: 14px;
-    min-width: 210px; box-shadow: 0 8px 32px #0009;
-  }
-  .fld-section-label {
-    font-size: 0.58rem; font-family: 'Space Mono', monospace; color: #2a5a38;
-    letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 8px;
-    padding-bottom: 6px; border-bottom: 1px solid #12261a;
-  }
-  .fld-base-btn {
-    display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px;
-    border-radius: 7px; border: 1px solid transparent; background: transparent;
-    color: #7aaa8a; font-family: 'Syne', sans-serif; font-size: 0.79rem;
-    font-weight: 600; cursor: pointer; transition: all 0.15s; margin-bottom: 3px; text-align: left;
-  }
-  .fld-base-btn:hover  { background: #111e16; color: #e2efe8; }
-  .fld-base-btn.active { background: #162d1f; border-color: #2a6a3a; color: #7fffa0; }
-  .fld-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .fld-divider { border: none; border-top: 1px solid #12261a; margin: 10px 0; }
-  .fld-toggle {
-    display: flex; align-items: center; gap: 9px; padding: 7px 9px;
-    border-radius: 7px; cursor: pointer; transition: background 0.15s;
-    user-select: none; margin-bottom: 3px;
-  }
-  .fld-toggle:hover { background: #111e16; }
-  .fld-toggle-label { font-size: 0.79rem; font-weight: 600; color: #7aaa8a; flex: 1; line-height: 1; }
-  .fld-toggle-sub { font-size: 0.6rem; color: #2a5a38; font-family:'Space Mono',monospace; display:block; margin-top:1px; }
-  .fld-pill {
-    padding: 2px 8px; border-radius: 100px; font-size: 0.6rem;
-    font-family: 'Space Mono', monospace; font-weight: 700; border: 1px solid; flex-shrink: 0;
-  }
-  .fld-pill.on     { background: #1a3a22; border-color: #2ecc71; color: #2ecc71; }
-  .fld-pill.off    { background: #12201a; border-color: #1e3828; color: #2a5a38; }
-  .fld-pill.red-on { background: #3a1010; border-color: #e53935; color: #e53935; }
-
-  .fld-opacity-row { padding: 6px 9px 4px; }
-  .fld-opacity-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;
-  }
-  .fld-opacity-label { font-size: 0.79rem; font-weight: 600; color: #7aaa8a; display: flex; align-items: center; gap: 8px; }
-  .fld-opacity-val {
-    font-size: 0.6rem; font-family: 'Space Mono', monospace;
-    color: #2ecc71; background: #1a3a22; border: 1px solid #2ecc7144;
-    padding: 1px 7px; border-radius: 100px;
-  }
-  .fld-slider {
-    -webkit-appearance: none; appearance: none;
-    width: 100%; height: 4px; border-radius: 2px; outline: none; cursor: pointer;
-    background: linear-gradient(to right, #2ecc71 var(--pct, 75%), #1e3828 var(--pct, 75%));
-  }
-  .fld-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
-    background: #2ecc71; border: 2px solid #080f0a; box-shadow: 0 0 6px #2ecc7155; cursor: pointer;
-  }
-  .fld-slider::-moz-range-thumb {
-    width: 13px; height: 13px; border-radius: 50%;
-    background: #2ecc71; border: 2px solid #080f0a; box-shadow: 0 0 6px #2ecc7155; cursor: pointer;
-  }
-
-  .fld-legend {
-    position: absolute; bottom: 14px; right: 12px; z-index: 1000;
-    background: rgba(8,15,10,0.94); backdrop-filter: blur(16px);
-    border: 1px solid #1e3828; border-radius: 12px; padding: 12px 14px;
-    min-width: 160px; box-shadow: 0 8px 32px #0009;
-  }
-  .fld-legend-title {
-    font-size: 0.58rem; font-family: 'Space Mono', monospace; color: #2a5a38;
-    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;
-    padding-bottom: 6px; border-bottom: 1px solid #12261a;
-  }
-  .fld-grad-bar {
-    width: 100%; height: 12px; border-radius: 6px;
-    background: linear-gradient(to right, #ffffb2, #fecc5c, #fd8d3c, #f03b20, #bd0026);
-    margin-bottom: 5px; box-shadow: 0 0 8px #bd002633;
-  }
-  .fld-grad-labels {
-    display: flex; justify-content: space-between; font-size: 0.58rem;
-    font-family: 'Space Mono', monospace; color: #3a6b4a; margin-bottom: 10px;
-  }
-  .fld-legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.7rem; font-family: 'Space Mono', monospace; color: #7aaa8a; }
-  .fld-legend-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-
-  .fld-stats-bar {
-    position: absolute; bottom: 14px; left: 12px; z-index: 1000;
-    display: flex; gap: 7px; flex-wrap: wrap;
-  }
-  .fld-stat {
-    background: rgba(8,15,10,0.94); backdrop-filter: blur(16px);
-    border: 1px solid #1e3828; border-radius: 10px; padding: 8px 13px; min-width: 70px;
-  }
-  .fld-stat-val { font-size: 1.1rem; font-weight: 800; color: #7fffa0; display: block; font-family: 'Space Mono', monospace; line-height: 1; }
-  .fld-stat-val.red   { color: #e53935; }
-  .fld-stat-val.amber { color: #ff9800; }
-  .fld-stat-lbl { color: #2a5a38; font-size: 0.55rem; font-family: 'Space Mono', monospace; letter-spacing: 1px; margin-top: 3px; display: block; text-transform: uppercase; }
-
-  .fld-date-badge {
-    position: absolute; top: 12px; left: 12px; z-index: 1000;
-    background: rgba(8,15,10,0.94); backdrop-filter: blur(16px);
-    border: 1px solid #1e3828; border-radius: 8px; padding: 6px 12px;
-    font-size: 0.63rem; font-family: 'Space Mono', monospace; color: #3a6b4a;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .fld-date-dot { width: 6px; height: 6px; border-radius: 50%; background: #2ecc71; animation: pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-
-  .fld-loading {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    background: rgba(8,15,10,0.88); backdrop-filter: blur(8px); z-index: 2000;
-    border-radius: 14px; flex-direction: column; gap: 14px;
-    font-family: 'Space Mono', monospace; color: #2a5a38; font-size: 0.72rem; letter-spacing: 2px;
-  }
-  .fld-spinner { width: 36px; height: 36px; border: 2px solid #12261a; border-top-color: #2ecc71; border-radius: 50%; animation: spin 0.9s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .leaflet-popup-content-wrapper {
-    background: #0d1a0f !important; border: 1px solid #1e3828 !important;
-    border-radius: 10px !important; box-shadow: 0 8px 24px #0009 !important;
-    color: #e2efe8 !important; font-family: 'Space Mono', monospace !important;
-  }
-  .leaflet-popup-tip { background: #0d1a0f !important; }
-  .leaflet-popup-content { margin: 10px 14px !important; font-size: 12px !important; line-height: 1.8 !important; }
-  .leaflet-popup-close-button { color: #3a6b4a !important; top: 6px !important; right: 8px !important; }
-`;
 
 // ─── Risk colour ramp (YlOrRd 5-stop) ────────────────────────────────────────
 function riskToRGB(risk) {
@@ -195,7 +31,7 @@ function riskColor(risk)     { const { R, G, B } = riskToRGB(risk); return `rgb(
 function riskColorA(risk, a) { const { R, G, B } = riskToRGB(risk); return `rgba(${R},${G},${B},${a})`; }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const CELL_DEG    = 0.00009
+const CELL_DEG    = 0.00009;
 const API         = "https://localhost:44331";
 const DEFAULT_OPA = 0.75;
 
@@ -226,10 +62,6 @@ function popupHtml(p) {
 }
 
 // ─── Draw grid cells ──────────────────────────────────────────────────────────
-// All polygons use interactive:false — Leaflet's canvas renderer skips
-// per-polygon hit-testing entirely.  Click events are resolved by a single
-// map.on('click') handler doing O(1) grid-key lookup.
-// Returns Map<gridKey, pointData> for the click handler.
 function drawGrid(map, points, layerRef, renderer, opacity) {
   if (layerRef.current) { map.removeLayer(layerRef.current); layerRef.current = null; }
   if (!points?.length || !renderer) return new Map();
@@ -258,10 +90,9 @@ function drawGrid(map, points, layerRef, renderer, opacity) {
       weight:       0,
       opacity:      0,
       smoothFactor: 0,
-      interactive:  false,   // ← KEY FIX: no per-polygon hit-testing
+      interactive:  false,
     }).addTo(group);
 
-    // Spatial lookup key — same snapping formula used in the click handler
     const key = `${Math.round(p.lat / CELL_DEG)}_${Math.round(p.lon / CELL_DEG)}`;
     cellLookup.set(key, p);
   });
@@ -271,7 +102,131 @@ function drawGrid(map, points, layerRef, renderer, opacity) {
   return cellLookup;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── AI Panel component ───────────────────────────────────────────────────────
+function AiPanel({ data, loading, error }) {
+  if (loading) {
+    return (
+      <div className="fld-ai-card">
+        <div className="fld-ai-loading">
+          <div className="fld-ai-spinner" />
+          RUNNING SATELLITE INTELLIGENCE…
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fld-ai-card">
+        <div className="fld-ai-label">AI ANALYSIS</div>
+        <div style={{ fontSize: "0.75rem", color: "#e24b4a" }}>{error}</div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const statusMap = {
+    "HIGH RISK": { bg: "#2a1010", text: "#e24b4a", icon: "⚠️" },
+    "MODERATE":  { bg: "#2a1e10", text: "#ef9f27", icon: "🟠" },
+    "UNCERTAIN": { bg: "#1a1a1a", text: "#888780", icon: "❓" },
+    "HEALTHY":   { bg: "#0d2010", text: "#1d9e75", icon: "✅" },
+  };
+  const statusStyle = statusMap[data.healthStatus] ?? { bg: "#12261a", text: "#3a6b4a", icon: "—" };
+
+  const ndviTrendBad = data.ndviTrend < 0;
+  const riskTrendBad = data.riskTrend > 0;
+
+  const metrics = [
+    { label: "AVG NDVI",   value: data.avgNdvi?.toFixed(3) },
+    { label: "AVG NDMI",   value: data.avgNdmi?.toFixed(3) },
+    {
+      label: "AVG RISK",
+      value: `${data.avgRisk?.toFixed(1)}%`,
+      color: data.avgRisk >= 60 ? "#e24b4a" : data.avgRisk >= 30 ? "#ef9f27" : "#1d9e75",
+    },
+    {
+      label: "NDVI TREND",
+      value: `${data.ndviTrend >= 0 ? "+" : ""}${data.ndviTrend?.toFixed(3)}`,
+      color: ndviTrendBad ? "#e24b4a" : "#1d9e75",
+    },
+    {
+      label: "RISK TREND",
+      value: `${data.riskTrend >= 0 ? "+" : ""}${data.riskTrend?.toFixed(1)}`,
+      color: riskTrendBad ? "#e24b4a" : "#1d9e75",
+    },
+    { label: "CLOUD COVER", value: `${data.cloudCoverPct?.toFixed(1)}%` },
+    {
+      label: "CONFIDENCE",
+      value: `${(data.confidenceScore * 100).toFixed(0)}%`,
+      color: data.confidenceScore < 0.4 ? "#e24b4a" : data.confidenceScore < 0.7 ? "#ef9f27" : "#1d9e75",
+    },
+    { label: "DATA QUALITY", value: data.dataQuality ?? "—" },
+  ];
+
+  return (
+    <div className="fld-ai-wrap">
+      {/* ── Header / narrative card ── */}
+      <div className="fld-ai-card">
+        <div className="fld-ai-label">🛰 AI FARM ANALYSIS · SATELLITE INTELLIGENCE</div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+          <span
+            className="fld-ai-status"
+            style={{ background: statusStyle.bg, color: statusStyle.text }}
+          >
+            {statusStyle.icon}&nbsp;{data.healthStatus}
+          </span>
+          <span className="fld-ai-meta">
+            Confidence: {(data.confidenceScore * 100).toFixed(0)}%
+            {data.date ? ` · ${String(data.date).slice(0, 10)}` : ""}
+          </span>
+        </div>
+
+        {/* OpenAI explanation (primary) */}
+        {data.aiExplanation && (
+          <p className="fld-ai-text">{data.aiExplanation}</p>
+        )}
+
+        {/* System recommendation fallback */}
+        {!data.aiExplanation && data.recommendation && (
+          <p className="fld-ai-text">{data.recommendation}</p>
+        )}
+
+        {/* Situation type badge */}
+        {data.situationType && (
+          <div style={{ marginBottom: 10 }}>
+            <span className="fld-ai-flag quality">
+              SITUATION · {data.situationType.replace(/_/g, " ")}
+            </span>
+          </div>
+        )}
+
+        {/* Flag pills */}
+        <div className="fld-ai-flags">
+          {data.isCloudAffected   && <span className="fld-ai-flag cloud">☁ Cloud affected</span>}
+          {data.isWeatherAffected && <span className="fld-ai-flag weather">🌧 Weather affected</span>}
+          {data.isTemporaryAnomaly && <span className="fld-ai-flag anomaly">⚡ Possible anomaly</span>}
+          {data.isSuspectSpike    && <span className="fld-ai-flag spike">⚠ Suspect spike</span>}
+        </div>
+      </div>
+
+      {/* ── Metric grid ── */}
+      <div className="fld-ai-metrics">
+        {metrics.map(({ label, value, color }) => (
+          <div className="fld-ai-metric" key={label}>
+            <div className="fld-ai-metric-lbl">{label}</div>
+            <div className="fld-ai-metric-val" style={{ color: color ?? "#7fffa0" }}>
+              {value ?? "—"}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Fields component ────────────────────────────────────────────────────
 export function Fields() {
   const mapRef        = useRef(null);
   const rendererRef   = useRef(null);
@@ -279,8 +234,8 @@ export function Fields() {
   const highRef       = useRef(null);
   const farmOutRef    = useRef(null);
   const allPointsRef  = useRef([]);
-  const cellLookupRef = useRef(new Map());  // click handler reads this
-  const popupRef      = useRef(null);       // single reusable popup
+  const cellLookupRef = useRef(new Map());
+  const popupRef      = useRef(null);
   const navigate      = useNavigate();
 
   const [hasFarm,    setHasFarm]    = useState(null);
@@ -292,9 +247,13 @@ export function Fields() {
   const [stats,      setStats]      = useState({ total: 0, high: 0, medium: 0, avgRisk: 0, maxRisk: 0 });
   const [lastSync,   setLastSync]   = useState(null);
 
-  const baseLayers  = useRef({});
+  // ── AI state ──
+  const [aiData,    setAiData]    = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError,   setAiError]   = useState(null);
 
-  // Refs so the stable map click handler can always read latest toggle state
+  const baseLayers = useRef({});
+
   const showGridRef = useRef(showGrid);
   const redOnlyRef  = useRef(redOnly);
   const opacityRef  = useRef(opacity);
@@ -302,7 +261,7 @@ export function Fields() {
   useEffect(() => { redOnlyRef.current  = redOnly;  }, [redOnly]);
   useEffect(() => { opacityRef.current  = opacity;  }, [opacity]);
 
-  // ── Base layer switch ──────────────────────────────────────────────────────
+  // ── Base layer switch ──
   const switchBase = useCallback((key) => {
     const map = mapRef.current;
     if (!map) return;
@@ -313,11 +272,11 @@ export function Fields() {
     setActiveBase(key);
   }, []);
 
-  // ── Opacity change ─────────────────────────────────────────────────────────
+  // ── Opacity change ──
   useEffect(() => {
     const map      = mapRef.current;
     const renderer = rendererRef.current;
-    if (!map || !renderer || !allPointsRef.current.length) return;
+    if (!map || !renderer || !map.getContainer() || !allPointsRef.current.length) return;
 
     if (redOnlyRef.current) {
       const filtered = allPointsRef.current.filter(p => p.risk >= 60);
@@ -333,7 +292,7 @@ export function Fields() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opacity]);
 
-  // ── Show/hide grid ─────────────────────────────────────────────────────────
+  // ── Show/hide grid ──
   useEffect(() => {
     const map    = mapRef.current;
     if (!map) return;
@@ -343,11 +302,11 @@ export function Fields() {
     else          { map.removeLayer(target); }
   }, [showGrid, redOnly]);
 
-  // ── High Risk Only toggle ──────────────────────────────────────────────────
+  // ── High Risk Only toggle ──
   useEffect(() => {
     const map      = mapRef.current;
     const renderer = rendererRef.current;
-    if (!map || !renderer || !allPointsRef.current.length) return;
+    if (!map || !renderer || !map.getContainer() || !allPointsRef.current.length) return;
 
     if (redOnly) {
       if (gridRef.current && map.hasLayer(gridRef.current)) map.removeLayer(gridRef.current);
@@ -365,7 +324,7 @@ export function Fields() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [redOnly]);
 
-  // ── Map init ───────────────────────────────────────────────────────────────
+  // ── Map init ──
   useEffect(() => {
     if (mapRef.current) return;
 
@@ -375,8 +334,9 @@ export function Fields() {
                  .setView([6.25, 80.50], 16);
     mapRef.current = map;
 
-    // Canvas renderer — single bitmap, zero inter-cell gaps
-    rendererRef.current = L.canvas({ padding: 0.5 });
+    map.whenReady(() => {
+  rendererRef.current = L.canvas({ padding: 0.5 });
+  });
 
     L.control.zoom({ position: "bottomleft" }).addTo(map);
 
@@ -391,24 +351,33 @@ export function Fields() {
     baseLayers.current = { satellite, street };
     satellite.addTo(map);
 
-    // ── Single map-level click handler ────────────────────────────────────────
-    // Replaces thousands of per-polygon bindPopup calls.
-    // Snaps click coordinates to the nearest cell centre using integer division
-    // by CELL_DEG — identical key formula to what drawGrid stores.
     popupRef.current = L.popup({ maxWidth: 240 });
 
     map.on("click", (e) => {
-      if (!showGridRef.current) return;   // grid hidden — no popup
-
+      if (!showGridRef.current) return;
       const key = `${Math.round(e.latlng.lat / CELL_DEG)}_${Math.round(e.latlng.lng / CELL_DEG)}`;
       const p   = cellLookupRef.current.get(key);
       if (!p) return;
-
       popupRef.current
         .setLatLng(e.latlng)
         .setContent(popupHtml(p))
         .openOn(map);
     });
+
+    // ── Fetch AI analysis ─────────────────────────────────────────────────────
+    const fetchAi = async (uid) => {
+      setAiLoading(true);
+      setAiError(null);
+      try {
+        const { data: ai } = await axios.get(`${API}/api/farm/ai-analysis/${uid}`);
+        setAiData(ai);
+      } catch (err) {
+        setAiError("AI analysis unavailable.");
+        console.error("AI analysis error:", err);
+      } finally {
+        setAiLoading(false);
+      }
+    };
 
     // ── Fetch farm outline + risk data ────────────────────────────────────────
     const init = async () => {
@@ -463,14 +432,23 @@ export function Fields() {
         const dates = clean.map(p => p.date).filter(Boolean).sort();
         if (dates.length) setLastSync(String(dates[dates.length - 1]).slice(0, 10));
 
-        // Initial draw
-        const lookup = drawGrid(map, clean, gridRef, rendererRef.current, DEFAULT_OPA);
+        map.whenReady(() => {
+  if (!rendererRef.current) {
+    rendererRef.current = L.canvas({ padding: 0.5 });
+  }
+  const lookup = drawGrid(map, clean, gridRef, rendererRef.current, DEFAULT_OPA);
+  cellLookupRef.current = lookup;
+  if (farmOutRef.current) farmOutRef.current.bringToFront();
+});
         cellLookupRef.current = lookup;
         if (farmOutRef.current) farmOutRef.current.bringToFront();
 
       } catch (err) {
         console.error("Risk API error:", err);
       }
+
+      // Fire AI fetch after risk data is loaded
+      fetchAi(userId);
     };
 
     init();
@@ -482,10 +460,10 @@ export function Fields() {
 
   return (
     <>
-      <style>{css}</style>
+      <style></style>
       <div id="field-root">
 
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="fld-header">
           <div className="fld-brand">
             <div className="fld-brand-icon">🛰</div>
@@ -501,7 +479,7 @@ export function Fields() {
           )}
         </div>
 
-        {/* Map */}
+        {/* ── Map ── */}
         <div className="fld-map-wrap">
           {loading && (
             <div className="fld-loading">
@@ -648,6 +626,16 @@ export function Fields() {
             </div>
           )}
         </div>
+
+        {/* ── AI Analysis Panel (below map) ── */}
+        {!loading && hasFarm && (
+          <AiPanel
+            data={aiData}
+            loading={aiLoading}
+            error={aiError}
+          />
+        )}
+
       </div>
     </>
   );

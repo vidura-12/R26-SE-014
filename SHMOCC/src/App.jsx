@@ -1,18 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Layout from "./components/Layout";
-import Home from "./pages/dashboard/Home";
-import Fields from "./pages/dashboard/Fields";
-import Map from "./pages/dashboard/Map";
-import Predict from "./pages/dashboard/Predict";
-import Reports from "./pages/dashboard/Reports";
-import Profile from "./pages/dashboard/Profile";
-import Farmhistory from "./pages/dashboard/Farmhistory";
-import FarmMap from "./pages/FarmMap";
-import Cinnamon from "./pages/Cinnamon";
 
+// Shared entry point (common across team members)
+import Mainpage from "./pages/Home/mainpage";
+
+// vidura's part only
+import Landing from "./pages/vidura/Landing";
+import Login from "./pages/vidura/Login";
+import Signup from "./pages/vidura/Signup";
+import AuthLayout from "./pages/vidura/AuthLayout";
+import FarmMap from "./pages/vidura/FarmMap";
+import Home from "./pages/vidura/dashboard/Home";
+import Fields from "./pages/vidura/dashboard/Fields";
+import Map from "./pages/vidura/dashboard/Map";
+import Predict from "./pages/vidura/dashboard/Predict";
+import Reports from "./pages/vidura/dashboard/Reports";
+import Profile from "./pages/vidura/dashboard/Profile";
+import Farmhistory from "./pages/vidura/dashboard/Farmhistory";
 
 // ── Auth guard: redirect to /login if no token ──────────────────────────────
 function PrivateRoute({ children }) {
@@ -30,15 +33,20 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Shared entry point */}
+        <Route path="/" element={<Mainpage />} />
+
+        {/* vidura's landing, kept reachable separately */}
+        <Route path="/landing" element={<Landing />} />
+
         {/* Public */}
-        <Route path="/" element={<Landing />} />
         <Route path="/login"  element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
-        {/* Protected — all wrapped inside the sidebar Layout */}
+        {/* Protected — all wrapped inside vidura's AuthLayout */}
         <Route
           path="/dashboard"
-          element={<PrivateRoute><Layout /></PrivateRoute>}
+          element={<PrivateRoute><AuthLayout /></PrivateRoute>}
         >
           <Route index          element={<Home />} />
           <Route path="fields"  element={<Fields />} />
@@ -50,10 +58,7 @@ export default function App() {
           <Route path="fields/farm" element={<FarmMap />} />
         </Route>
 
-        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
-
-        <Route path="/cinnamon" element={<Cinnamon />} /> 
       </Routes>
     </BrowserRouter>
   );
