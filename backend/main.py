@@ -28,11 +28,12 @@ def home():
 
 @app.post("/predict")
 def predict(data: SensorData):
-    risk = predict_risk(
+    result = predict_risk(
         data.Soil_pH,
         data.Soil_Moisture_VWC,
-        data.Soil_Temp_C
+        data.Soil_Temp_C,
     )
     return {
-        "White_Root_Disease_Risk": risk
+        "White_Root_Disease_Risk": result["level"],
+        "confidence":              result["confidence"],
     }

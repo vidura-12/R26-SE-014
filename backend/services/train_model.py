@@ -5,6 +5,7 @@ import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from imblearn.over_sampling import SMOTE
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -128,6 +129,9 @@ print("\nLabel encoding:", dict(zip(encoder.classes_, encoder.transform(encoder.
 # ================================
 # TRAIN TEST SPLIT (stratified)
 # ================================
+
+sm = SMOTE(random_state=42)
+X_resampled, y_resampled = sm.fit_resample(X, y_encoded)
 
 X_train, X_test, y_train, y_test = train_test_split(
     X,

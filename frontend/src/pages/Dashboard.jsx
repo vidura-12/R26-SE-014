@@ -278,6 +278,7 @@ export default function Dashboard() {
       const deviceData = {
         name:          newDevice.name.trim(),
         deviceId:      newDevice.deviceId.trim(),
+         rtdbPath:      `/devices/${newDevice.deviceId.trim()}/sensorData`,
         location:      newDevice.district + (newDevice.location ? " — " + newDevice.location : ""),
         district:      newDevice.district,
         fieldLocation: newDevice.location.trim(),
