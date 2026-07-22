@@ -16,6 +16,7 @@ import Predict from "./pages/vidura/dashboard/Predict";
 import Reports from "./pages/vidura/dashboard/Reports";
 import Profile from "./pages/vidura/dashboard/Profile";
 import Farmhistory from "./pages/vidura/dashboard/Farmhistory";
+import Cinnamon from "./pages/Nimesha/Cinnamon";
 
 // ── Auth guard: redirect to /login if no token ──────────────────────────────
 function PrivateRoute({ children }) {
@@ -35,6 +36,8 @@ export default function App() {
       <Routes>
         {/* Shared entry point */}
         <Route path="/" element={<Mainpage />} />
+
+        <Route path="/cinnamon" element={<Cinnamon />} />
 
         {/* vidura's landing, kept reachable separately */}
         <Route path="/landing" element={<Landing />} />
