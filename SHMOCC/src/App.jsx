@@ -17,6 +17,7 @@ import Reports from "./pages/vidura/dashboard/Reports";
 import Profile from "./pages/vidura/dashboard/Profile";
 import Farmhistory from "./pages/vidura/dashboard/Farmhistory";
 import Cinnamon from "./pages/Nimesha/Cinnamon";
+import GradeMarketAuth from "./pages/Nimesha/GradeMarketAuth";
 
 // ── Auth guard: redirect to /login if no token ──────────────────────────────
 function PrivateRoute({ children }) {
@@ -30,6 +31,13 @@ function PublicRoute({ children }) {
   return token ? <Navigate to="/dashboard" replace /> : children;
 }
 
+//cinnamon auth 
+function CinnamonPrivateRoute({ children }) {
+  const token = localStorage.getItem("cinnamonToken");
+
+  return token ? children : <Navigate to="/cinnamon/login" replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -37,7 +45,7 @@ export default function App() {
         {/* Shared entry point */}
         <Route path="/" element={<Mainpage />} />
 
-        <Route path="/cinnamon" element={<Cinnamon />} />
+        {/*<Route path="/cinnamon" element={<Cinnamon />} />*/}
 
         {/* vidura's landing, kept reachable separately */}
         <Route path="/landing" element={<Landing />} />
@@ -45,6 +53,17 @@ export default function App() {
         {/* Public */}
         <Route path="/login"  element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+
+        {/* Cinnamon auth */}
+        <Route path="/cinnamon/login" element={<GradeMarketAuth />} />
+        <Route
+          path="/cinnamon"
+          element={
+            <CinnamonPrivateRoute>
+              <Cinnamon />
+            </CinnamonPrivateRoute>
+          }
+        />
 
         {/* Protected — all wrapped inside vidura's AuthLayout */}
         <Route

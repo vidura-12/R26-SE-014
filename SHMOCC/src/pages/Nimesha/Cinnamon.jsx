@@ -154,9 +154,14 @@ export default function Cinnamon() {
         const formData = new FormData();
         formData.append("image", fileInput);
 
+        const token = localStorage.getItem("cinnamonToken");
+
         const res = await fetch("http://localhost:9000/upload", {
-        method: "POST",
-        body: formData,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
         });
 
         const data = await res.json();
