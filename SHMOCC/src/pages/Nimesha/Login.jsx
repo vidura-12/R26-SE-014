@@ -42,7 +42,7 @@ export default function Login({ onRegister }) {
       localStorage.setItem("cinnamonUserId", data.userId);
       localStorage.setItem("cinnamonUserName", data.userName);
 
-      navigate("/cinnamon");
+      navigate("/cinnamon", { replace: true });
 
     } catch (error) {
       setMessage("Server connection failed.");

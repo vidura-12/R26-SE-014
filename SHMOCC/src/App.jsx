@@ -16,8 +16,11 @@ import Predict from "./pages/vidura/dashboard/Predict";
 import Reports from "./pages/vidura/dashboard/Reports";
 import Profile from "./pages/vidura/dashboard/Profile";
 import Farmhistory from "./pages/vidura/dashboard/Farmhistory";
+///Nimesha's part 
 import Cinnamon from "./pages/Nimesha/Cinnamon";
 import GradeMarketAuth from "./pages/Nimesha/GradeMarketAuth";
+import History from "./pages/Nimesha/History";
+import Admin from "./pages/Nimesha/Admin";
 
 // ── Auth guard: redirect to /login if no token ──────────────────────────────
 function PrivateRoute({ children }) {
@@ -55,12 +58,39 @@ export default function App() {
         <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
         {/* Cinnamon auth */}
-        <Route path="/cinnamon/login" element={<GradeMarketAuth />} />
+        <Route
+          path="/cinnamon/login"
+          element={
+            localStorage.getItem("cinnamonToken") ? (
+              <Navigate to="/cinnamon" replace />
+            ) : (
+              <GradeMarketAuth />
+            )
+          }
+        />
+
         <Route
           path="/cinnamon"
           element={
             <CinnamonPrivateRoute>
               <Cinnamon />
+            </CinnamonPrivateRoute>
+          }
+        />
+        <Route
+          path="/cinnamon/history"
+          element={
+            <CinnamonPrivateRoute>
+              <History />
+            </CinnamonPrivateRoute>
+          }
+        />
+
+        <Route
+          path="/cinnamon/admin"
+          element={
+            <CinnamonPrivateRoute>
+              <Admin />
             </CinnamonPrivateRoute>
           }
         />
