@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import GradeMarketAuth from "../Nimesha/GradeMarketAuth";
 
 const COMPONENTS = [
   {
@@ -169,6 +170,11 @@ function Home({ onNavigate }) {
 }
 
 function ComponentPage({ component, onNavigate }) {
+
+   if (component.id === "grade-market") {
+    return <GradeMarketAuth />;
+  }
+
   return (
     <main className="mx-auto max-w-[1280px] px-8 py-24 sm:px-12">
       <button

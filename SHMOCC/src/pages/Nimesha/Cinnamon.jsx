@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import img1 from "../../assets/7.jpg";
 import img2 from "../../assets/2.jpg";
 import img3 from "../../assets/5.jpg";
@@ -62,6 +63,16 @@ export default function Cinnamon() {
   const videoRef = useRef();
   const [showCamera, setShowCamera] = useState(false);
   const [stream, setStream] = useState(null);
+  const navigate = useNavigate();
+
+  function handleLogout() {
+  localStorage.removeItem("cinnamonToken");
+  localStorage.removeItem("cinnamonRole");
+  localStorage.removeItem("cinnamonUserId");
+  localStorage.removeItem("cinnamonUserName");
+
+  window.location.href = "/cinnamon/login";
+}
 
   const [resultTab, setResultTab] = useState("grade");
 
@@ -154,9 +165,14 @@ export default function Cinnamon() {
         const formData = new FormData();
         formData.append("image", fileInput);
 
+        const token = localStorage.getItem("cinnamonToken");
+
         const res = await fetch("http://localhost:9000/upload", {
-        method: "POST",
-        body: formData,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
         });
 
         const data = await res.json();
@@ -183,6 +199,36 @@ export default function Cinnamon() {
       {/* ── HERO ── */}
       <header className="pt-20 pb-3 grid grid-cols-1 md:grid-cols-[1fr_auto] items-end gap-8 px-4">
         <div>
+        <div className="flex justify-between items-center px-4 mb-6">
+
+  <div className="flex gap-3">
+
+<button
+  onClick={() => navigate("/cinnamon/history")}
+  className="px-5 py-2 rounded bg-gray-200 hover:bg-gray-300"
+>
+  History
+</button>
+
+{localStorage.getItem("cinnamonRole") === "admin" && (
+  <button
+    onClick={() => navigate("/cinnamon/admin")}
+    className="px-5 py-2 rounded bg-gray-200 hover:bg-gray-300"
+  >
+    Admin Dashboard
+  </button>
+)}
+
+  </div>
+
+ <button
+  onClick={handleLogout}
+  className="fixed top-6 right-6 z-50 px-5 py-2 rounded bg-red-600 text-white hover:bg-red-700 shadow-lg"
+>
+  Logout
+</button>
+
+</div>
           <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-widest uppercase text-amber-600 border border-amber-200 bg-amber-50 px-3 py-1 rounded-sm mb-5">
             <span>●</span> Ceylon Spice Intelligence
           </div>
