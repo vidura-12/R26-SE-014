@@ -4,12 +4,12 @@ from pydantic import BaseModel
 
 from services.predict import predict_risk
 
-app = FastAPI()
+app = FastAPI(title="White Root Rot Prediction API")
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"],  # your React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,4 +36,10 @@ def predict(data: SensorData):
     return {
         "White_Root_Disease_Risk": result["level"],
         "confidence":              result["confidence"],
+        "probabilities":           result["probabilities"],
     }
+
+# ── Health Check ─────────────────────────────────────────────────────────────
+@app.get("/health")
+def health():
+    return {"status": "ok", "model_loaded": True}

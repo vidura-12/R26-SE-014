@@ -8,11 +8,14 @@ import { signOut } from "firebase/auth";
 import { db, auth } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 
+// ─── Sensor data that matches your FastAPI model inputs ─────────────────────
 const MOCK_SENSOR = {
-  temperature: 28.4,
+  soilPH: 5.9,
+  soilMoistureVWC: 31.5,
+  soilTempC: 27.0,
+  // supplementary display-only fields
   humidity: 74.2,
   rainfall: 12.6,
-  soilMoisture: 58.3,
   windSpeed: 9.1,
   uvIndex: 6.2,
 };
@@ -27,8 +30,6 @@ const MOCK_HISTORY = [
   { date: "2025-05-02", risk: 55, temp: 27.3, humidity: 68, rainfall: 6.8,  level: "Medium" },
 ];
 
-const RISK_SCORE = 73;
-
 const RISK_CONFIG = {
   Critical: { color: "#e05252", bg: "#fff5f5", border: "#fca5a5", label: "Critical Risk" },
   High:     { color: "#e08c52", bg: "#fff7ed", border: "#fed7aa", label: "High Risk" },
@@ -40,6 +41,8 @@ const DISTRICTS = [
   "Ampara","Anuradhapura","Badulla","Batticaloa","Colombo","Galle","Gampaha",
   "Hambantota","Jaffna","Kalutara","Kandy","Kegalle","Kurunegala","Matara","Ratnapura",
 ];
+
+const API_BASE_URL = "http://localhost:8000"; // your FastAPI server
 
 // ─── Mini sparkline ───────────────────────────────────────────────────────────
 function Sparkline({ data, color }) {
@@ -85,6 +88,36 @@ function RiskGauge({ score }) {
         <text x={cx} y={cy + 26} textAnchor="middle" fontSize="13" fontWeight="700"
           fill={color} fontFamily="'Plus Jakarta Sans',sans-serif">{label}</text>
       </svg>
+    </div>
+  );
+}
+
+// ─── Probability Bars ─────────────────────────────────────────────────────────
+function ProbabilityBars({ probabilities }) {
+  if (!probabilities || Object.keys(probabilities).length === 0) return null;
+  const levelOrder = ["Critical Risk", "High Risk", "Medium Risk", "Low Risk"];
+  const levelShort = { "Critical Risk": "Critical", "High Risk": "High", "Medium Risk": "Medium", "Low Risk": "Low" };
+  const levelColor = { "Critical Risk": "#e05252", "High Risk": "#e08c52", "Medium Risk": "#e8c84a", "Low Risk": "#2d8a4e" };
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#7aaa8a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
+        Model Confidence
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {levelOrder.map(lvl => {
+          const prob = probabilities[lvl] || 0;
+          return (
+            <div key={lvl} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#2a5c3a", width: 60, textAlign: "right" }}>{levelShort[lvl]}</span>
+              <div style={{ flex: 1, height: 8, background: "#e0ede5", borderRadius: 99, overflow: "hidden" }}>
+                <div style={{ width: `${prob * 100}%`, height: "100%", background: levelColor[lvl], borderRadius: 99, transition: "width 0.8s ease" }} />
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: levelColor[lvl], width: 40 }}>{(prob * 100).toFixed(1)}%</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -161,7 +194,6 @@ function DeviceCard({ device, onRemove, removeLoading, onEdit, onViewSensor }) {
           color: isOnline ? "#1a5c2e" : "#e05252",
           textTransform: "uppercase", letterSpacing: "0.08em",
         }}>{device.status}</span>
-        {/* ── View Sensor Data button ── */}
         <button
           onClick={() => onViewSensor(device)}
           style={{
@@ -227,19 +259,89 @@ export default function Dashboard() {
   const [editSuccess, setEditSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const sparkTemp     = [26.1, 27.4, 26.8, 28.1, 27.9, 28.4, 28.4];
-  const sparkHumidity = [68, 70, 72, 71, 74, 73, 74];
-  const sparkRain     = [0, 2.1, 8.4, 5.2, 10.1, 12.6, 12.6];
-  const sparkSoil     = [52, 55, 57, 54, 58, 60, 58];
-  const sparkWind     = [7.2, 8.1, 9.4, 8.8, 9.1, 9.1, 9.1];
-  const sparkUV       = [4.1, 5.2, 6.8, 6.2, 5.9, 6.2, 6.2];
+  // ── NEW: Live prediction states ───────────────────────────────────────────
+  const [riskScore, setRiskScore] = useState(0);
+  const [riskLevel, setRiskLevel] = useState("Low");
+  const [predictionLoading, setPredictionLoading] = useState(false);
+  const [predictionError, setPredictionError] = useState("");
+  const [probabilities, setProbabilities] = useState({});
+  const [riskAdvice, setRiskAdvice] = useState("");
 
-  const currentRiskLevel = RISK_SCORE >= 80 ? "Critical" : RISK_SCORE >= 60 ? "High" : RISK_SCORE >= 40 ? "Medium" : "Low";
-  const riskCfg = RISK_CONFIG[currentRiskLevel];
+  // Sparkline data for the 3 model inputs
+  const sparkPH       = [5.7, 5.8, 5.9, 6.0, 6.1, 5.9, 5.9];
+  const sparkMoisture = [28, 30, 32, 31, 33, 31, 31];
+  const sparkTemp     = [25.5, 26.2, 26.8, 27.1, 27.5, 27.0, 27.0];
+
+  const currentRiskLevel = riskLevel;
+  const riskCfg = RISK_CONFIG[currentRiskLevel] || RISK_CONFIG.Low;
 
   const filteredHistory = historyFilter === "all"
     ? MOCK_HISTORY
     : MOCK_HISTORY.filter(h => h.level.toLowerCase() === historyFilter);
+
+  // ── Fetch prediction from FastAPI ─────────────────────────────────────────
+  const fetchPrediction = async () => {
+    setPredictionLoading(true);
+    setPredictionError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Soil_pH: sensorData.soilPH,
+          Soil_Moisture_VWC: sensorData.soilMoistureVWC,
+          Soil_Temp_C: sensorData.soilTempC,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Map API level (e.g. "High Risk") → dashboard level ("High")
+      const apiLevel = data.White_Root_Disease_Risk || "Low Risk";
+      const shortLevel = apiLevel.replace(" Risk", "");
+
+      // Convert level + confidence to a 0-100 score for the gauge
+      const levelBase = { Low: 20, Medium: 45, High: 70, Critical: 90 };
+      const base = levelBase[shortLevel] || 50;
+      const conf = (data.confidence || 0) / 100;
+      const score = Math.round(base + (conf * 15));
+
+      setRiskScore(Math.min(100, Math.max(0, score)));
+      setRiskLevel(shortLevel);
+      setProbabilities(data.probabilities || {});
+
+      // Dynamic advice based on level
+      const adviceMap = {
+        Low:      "✅ Soil conditions are optimal. Continue routine monitoring.",
+        Medium:   "⚠️ Slight stress detected. Monitor closely and consider early preventive measures.",
+        High:     "⚠️ High humidity and temperature favor White Root Rot. Apply preventive fungicide.",
+        Critical: "🚨 Critical conditions! Immediate intervention required — apply fungicide and improve drainage.",
+      };
+      setRiskAdvice(adviceMap[shortLevel] || adviceMap.Low);
+
+    } catch (err) {
+      console.error("Prediction error:", err);
+      setPredictionError("Backend unreachable — showing fallback estimate.");
+      // Fallback so UI doesn't break
+      setRiskScore(73);
+      setRiskLevel("High");
+      setProbabilities({ "High Risk": 0.73, "Medium Risk": 0.15, "Low Risk": 0.08, "Critical Risk": 0.04 });
+      setRiskAdvice("⚠️ High humidity combined with recent rainfall increases Leaf Spot risk. Consider preventive fungicide application.");
+    } finally {
+      setPredictionLoading(false);
+    }
+  };
+
+  // ── Load prediction on mount ──────────────────────────────────────────────
+  useEffect(() => {
+    fetchPrediction();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Load devices ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -278,7 +380,7 @@ export default function Dashboard() {
       const deviceData = {
         name:          newDevice.name.trim(),
         deviceId:      newDevice.deviceId.trim(),
-         rtdbPath:      `/devices/${newDevice.deviceId.trim()}/sensorData`,
+        rtdbPath:      `/devices/${newDevice.deviceId.trim()}/sensorData`,
         location:      newDevice.district + (newDevice.location ? " — " + newDevice.location : ""),
         district:      newDevice.district,
         fieldLocation: newDevice.location.trim(),
@@ -530,21 +632,48 @@ export default function Dashboard() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 24 }}>
                 {/* Risk gauge */}
                 <div style={{ background: "white", borderRadius: 20, padding: 24, border: `1.5px solid ${riskCfg.border}`, boxShadow: "0 4px 20px rgba(26,92,46,0.08)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#7aaa8a", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Current Disease Risk</div>
-                  <RiskGauge score={RISK_SCORE} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#7aaa8a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Current Disease Risk</div>
+                    {predictionLoading && (
+                      <div style={{ width: 16, height: 16, border: "2px solid #cde4d5", borderTop: "2px solid #2d8a4e", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    )}
+                  </div>
+                  <RiskGauge score={riskScore} />
+                  <ProbabilityBars probabilities={probabilities} />
                   <div style={{ marginTop: 16, padding: "12px 16px", background: riskCfg.bg, borderRadius: 10, border: `1px solid ${riskCfg.border}` }}>
                     <div style={{ fontSize: 13, color: riskCfg.color, fontWeight: 600, lineHeight: 1.5 }}>
-                      ⚠️ High humidity (74%) combined with recent rainfall increases Leaf Spot risk. Consider preventive fungicide application.
+                      {riskAdvice}
                     </div>
                   </div>
+                  {predictionError && (
+                    <div style={{ marginTop: 10, fontSize: 12, color: "#e05252", fontWeight: 600 }}>
+                      {predictionError}
+                    </div>
+                  )}
+                  <button
+                    onClick={fetchPrediction}
+                    disabled={predictionLoading}
+                    style={{
+                      marginTop: 14, width: "100%", padding: "10px", borderRadius: 10,
+                      border: "1.5px solid #cde4d5", background: "white", color: "#1a5c2e",
+                      fontSize: 13, fontWeight: 700, cursor: predictionLoading ? "not-allowed" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    }}
+                  >
+                    {predictionLoading ? (
+                      <><div style={{ width: 14, height: 14, border: "2px solid #cde4d5", borderTop: "2px solid #2d8a4e", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Refreshing...</>
+                    ) : (
+                      <>🔄 Refresh Prediction</>
+                    )}
+                  </button>
                 </div>
 
-                {/* Quick stats */}
+                {/* Quick stats — now showing the 3 model inputs */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   {[
-                    { icon: "🌡️", label: "Temperature", val: `${sensorData.temperature}°C`, sub: "Above optimal range", color: "#e08c52" },
-                    { icon: "💧", label: "Humidity", val: `${sensorData.humidity}%`, sub: "High — monitor closely", color: "#3b82f6" },
-                    { icon: "🌧️", label: "Rainfall (24h)", val: `${sensorData.rainfall} mm`, sub: "Moderate levels", color: "#2d8a4e" },
+                    { icon: "🧪", label: "Soil pH", val: sensorData.soilPH, unit: "", sub: "Acidic range", color: "#8b5cf6" },
+                    { icon: "💧", label: "Soil Moisture", val: `${sensorData.soilMoistureVWC}%`, unit: "VWC", sub: "Moderately wet", color: "#3b82f6" },
+                    { icon: "🌡️", label: "Soil Temperature", val: `${sensorData.soilTempC}°C`, unit: "", sub: "Above optimal", color: "#e08c52" },
                   ].map(s => (
                     <div key={s.label} className="stat-card" style={{ background: "white", borderRadius: 14, padding: "14px 18px", border: "1px solid rgba(44,138,78,0.1)", boxShadow: "0 2px 8px rgba(26,92,46,0.05)", display: "flex", alignItems: "center", gap: 14 }}>
                       <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
@@ -614,6 +743,28 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {/* Model Input Sensor Cards */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#0f2d1a", marginBottom: 14 }}>🌱 White Root Rot — Model Inputs</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14 }}>
+                  <SensorCard
+                    icon="🧪" label="Soil pH"
+                    value={sensorData.soilPH} unit=""
+                    sparkData={sparkPH} color="#8b5cf6" trend={-1.2}
+                  />
+                  <SensorCard
+                    icon="💧" label="Soil Moisture"
+                    value={sensorData.soilMoistureVWC} unit="% VWC"
+                    sparkData={sparkMoisture} color="#3b82f6" trend={2.4}
+                  />
+                  <SensorCard
+                    icon="🌡️" label="Soil Temperature"
+                    value={sensorData.soilTempC} unit="°C"
+                    sparkData={sparkTemp} color="#e08c52" trend={0.8}
+                  />
+                </div>
+              </div>
+
               {/* Recent history */}
               <div style={{ background: "white", borderRadius: 20, padding: 24, border: "1px solid rgba(44,138,78,0.1)", boxShadow: "0 4px 20px rgba(26,92,46,0.08)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -667,7 +818,7 @@ export default function Dashboard() {
               </div>
               {devicesLoading ? (
                 <div style={{ textAlign:"center", padding:"56px 24px", background:"white", borderRadius:20, border:"1px solid rgba(44,138,78,0.1)" }}>
-                  <div style={{ width:36,height:36,border:"3px solid #cde4d5",borderTop:"3px solid #2d8a4e",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 16px" }}/>
+                  <div style={{ width:36,height:36,border:"3px solid #cde4d5",borderTop:"3px solid #2d8a4e",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 16px"}}/>
                   <p style={{ fontSize:14,color:"#7aaa8a" }}>Loading your devices...</p>
                 </div>
               ) : devicesError ? (
