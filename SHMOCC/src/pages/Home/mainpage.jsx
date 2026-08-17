@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import GradeMarketAuth from "../Nimesha/GradeMarketAuth";
 
 const COMPONENTS = [
@@ -211,6 +211,7 @@ function ComponentPage({ component, onNavigate }) {
 export default function App() {
   const [active, setActive] = useState("home");
   const activeComponent = COMPONENTS.find((c) => c.id === active);
+  const iframeRef = useRef(null);
 
   return (
     <div className="min-h-screen" style={{ background: PAPER, fontFamily: "Inter, system-ui, sans-serif" }}>
@@ -221,10 +222,28 @@ export default function App() {
 
       <TopNav active={active} onNavigate={setActive} />
 
-      {active === "home" || !activeComponent ? (
-        <Home onNavigate={setActive} />
-      ) : (
-        <ComponentPage component={activeComponent} onNavigate={setActive} />
+      {/* Iframe always mounted, just hidden when not active */}
+      <iframe
+        ref={iframeRef}
+        src="https://cinnamonsync.netlify.app/login"
+        style={{
+          width: "100%",
+          height: "calc(100vh - 80px)",
+          border: "none",
+          display: active === "labor" ? "block" : "none",
+          position: active === "labor" ? "relative" : "absolute",
+        }}
+        title="Peeler Dispatch Workspace"
+      />
+
+      {active !== "labor" && (
+        <>
+          {active === "home" || !activeComponent ? (
+            <Home onNavigate={setActive} />
+          ) : (
+            <ComponentPage component={activeComponent} onNavigate={setActive} />
+          )}
+        </>
       )}
     </div>
   );
