@@ -7,6 +7,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import SensorData from "./pages/SensorData";
 import PrivateRoute from "./components/PrivateRoute";
+import Advisory from "./pages/Advisory";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/sensor-data" element={
             <PrivateRoute><SensorData /></PrivateRoute>
           } />
+           <Route path="/advisory" element={<Advisory />} /> 
         </Routes>
       </BrowserRouter>
     </AuthProvider>

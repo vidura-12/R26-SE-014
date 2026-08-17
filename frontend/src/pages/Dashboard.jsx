@@ -673,6 +673,45 @@ export default function Dashboard() {
               <span style={{ fontSize: 20, flexShrink: 0 }}>📊</span>
               {sidebarOpen && <span style={{ fontSize: 14, fontWeight: 600, color: "#64748b", whiteSpace: "nowrap" }}>Sensor Data</span>}
             </button>
+
+            {/* Inside your Dashboard.jsx sidebar <nav> block, add this: */}
+
+<button
+  onClick={() => nav("/advisory")}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    padding: "13px 14px",
+    borderRadius: 12,
+    marginBottom: 6,
+    background: "transparent",
+    borderLeft: "3px solid transparent",
+    width: "100%",
+    textAlign: "left",
+    border: "none",
+    cursor: "pointer",
+    transition: "all 0.25s",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.background = "transparent";
+  }}
+>
+  <span style={{ fontSize: 20, flexShrink: 0 }}>🛡️</span>
+  <span
+    style={{
+      fontSize: 14,
+      fontWeight: 600,
+      color: "#94a3b8",
+      whiteSpace: "nowrap",
+    }}
+  >
+    Advisory
+  </span>
+</button>
           </nav>
 
           {/* Register device button */}
