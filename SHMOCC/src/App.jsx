@@ -16,6 +16,12 @@ import Farmhistory from "./pages/vidura/dashboard/Farmhistory";
 import FarmRegister from "./pages/vidura/dashboard/Fields";
 import FarmForecast from "./pages/vidura/dashboard/FarmForecast";
 
+///Nimesha's part 
+import Cinnamon from "./pages/Nimesha/Cinnamon";
+import GradeMarketAuth from "./pages/Nimesha/GradeMarketAuth";
+import History from "./pages/Nimesha/History";
+import Admin from "./pages/Nimesha/Admin";
+
 const TOKEN_KEY = "token_vidura";
 const DASHBOARD_PATH = "/plantation-health/dashboard";
 const LOGIN_PATH = "/plantation-health/login";
@@ -32,12 +38,20 @@ function PublicRouteVidura({ children }) {
   return token ? <Navigate to={DASHBOARD_PATH} replace /> : children;
 }
 
+//cinnamon auth 
+function CinnamonPrivateRoute({ children }) {
+  const token = localStorage.getItem("cinnamonToken");
+
+  return token ? children : <Navigate to="/cinnamon/login" replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Mainpage />} />
 
+        {/* Vidura public routes */}
         <Route
           path="/plantation-health/login"
           element={
@@ -55,6 +69,7 @@ export default function App() {
           }
         />
 
+        {/* Vidura dashboard */}
         <Route
           path={DASHBOARD_PATH}
           element={
@@ -73,6 +88,46 @@ export default function App() {
           <Route path="FarmForecast" element={<FarmForecast />} />
         </Route>
 
+        {/* Cinnamon auth */}
+        <Route
+          path="/cinnamon/login"
+          element={
+            localStorage.getItem("cinnamonToken") ? (
+              <Navigate to="/cinnamon" replace />
+            ) : (
+              <GradeMarketAuth />
+            )
+          }
+        />
+
+        <Route
+          path="/cinnamon"
+          element={
+            <CinnamonPrivateRoute>
+              <Cinnamon />
+            </CinnamonPrivateRoute>
+          }
+        />
+
+        <Route
+          path="/cinnamon/history"
+          element={
+            <CinnamonPrivateRoute>
+              <History />
+            </CinnamonPrivateRoute>
+          }
+        />
+
+        <Route
+          path="/cinnamon/admin"
+          element={
+            <CinnamonPrivateRoute>
+              <Admin />
+            </CinnamonPrivateRoute>
+          }
+        />
+
+        {/* Catch unknown URLs */}
         <Route
           path="*"
           element={<Navigate to="/plantation-health/login" replace />}
