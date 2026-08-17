@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import axios from "axios";
 import "leaflet/dist/leaflet.css";
-import "./Farmhistory.css";
+import { useLanguage } from "../dashboard/context/LanguageContext"; // adjust path to your file location
+import { useTheme } from "../dashboard/context/ThemeContext";        // adjust path to your file location
 
 // ─── Colour helpers ───────────────────────────────────────────────────────────
 function riskToRGB(risk) {
@@ -36,38 +37,40 @@ const riskColor = r => {
 const CELL_DEG = 0.00009;
 const API      = "https://localhost:44331";
 
-// ─── Popup HTML ───────────────────────────────────────────────────────────────
-function popupHtml(p) {
+// ─── Popup HTML (Tailwind classes — project must have Tailwind's JIT scanning this file) ──
+// NOTE: labels param added so the Leaflet popup (plain HTML, outside React) can show
+// translated text too. Nothing about how the popup is built or triggered has changed.
+function popupHtml(p, labels) {
   const col   = riskColor(p.risk);
-  const badge = p.risk >= 60 ? "HIGH RISK" : p.risk >= 30 ? "MEDIUM" : "LOW RISK";
+  const badge = p.risk >= 69.99 ? labels.high : p.risk >= 69.99 ? labels.medium : labels.low;
   return `
-    <div style="min-width:175px;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;color:#d1fae5">
-      <div style="font-size:9px;color:#6ee7b7;letter-spacing:1.5px;margin-bottom:8px;text-transform:uppercase">
-        Cell · ${p.cellId ?? ""}
+    <div class="min-w-[180px] font-sans text-xs text-emerald-50">
+      <div class="text-[9px] text-emerald-400 tracking-[0.15em] mb-2 uppercase font-medium">
+        ${labels.cell} · ${p.cellId ?? ""}
       </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div style="width:30px;height:30px;border-radius:7px;background:${col};flex-shrink:0"></div>
+      <div class="flex items-center gap-2.5 mb-2.5">
+        <div class="w-7 h-7 rounded-lg flex-shrink-0 shadow-inner" style="background:${col}"></div>
         <div>
-          <div style="font-size:1.25rem;font-weight:700;color:${col};line-height:1">
-            ${(+p.risk).toFixed(1)}<span style="font-size:10px;color:#6ee7b7">%</span>
+          <div class="text-xl font-bold leading-none" style="color:${col}">
+            ${(+p.risk).toFixed(1)}<span class="text-[10px] text-emerald-400">%</span>
           </div>
-          <div style="font-size:9px;color:#6ee7b7;margin-top:2px;letter-spacing:1px;text-transform:uppercase">${badge}</div>
+          <div class="text-[9px] text-emerald-400 mt-1 tracking-wide uppercase font-medium">${badge}</div>
         </div>
       </div>
-      <div style="border-top:1px solid #1e3d28;padding-top:8px;display:grid;gap:4px">
-        <div style="display:flex;justify-content:space-between">
-          <span style="color:#6ee7b7">NDVI</span>
-          <span style="font-weight:600">${isNaN(p.ndvi) ? "—" : (+p.ndvi).toFixed(4)}</span>
+      <div class="border-t border-emerald-900/60 pt-2 grid gap-1">
+        <div class="flex justify-between">
+          <span class="text-emerald-400/90">${labels.avgNdvi}</span>
+          <span class="font-semibold">${isNaN(p.ndvi) ? "—" : (+p.ndvi).toFixed(4)}</span>
         </div>
-        <div style="display:flex;justify-content:space-between">
-          <span style="color:#6ee7b7">NDMI</span>
-          <span style="font-weight:600">${isNaN(p.ndmi) ? "—" : (+p.ndmi).toFixed(4)}</span>
+        <div class="flex justify-between">
+          <span class="text-emerald-400/90">${labels.avgNdmi}</span>
+          <span class="font-semibold">${isNaN(p.ndmi) ? "—" : (+p.ndmi).toFixed(4)}</span>
         </div>
-        <div style="display:flex;justify-content:space-between">
-          <span style="color:#6ee7b7">Pixels</span>
-          <span style="font-weight:600">${p.pixelCount ?? "—"}</span>
+        <div class="flex justify-between">
+          <span class="text-emerald-400/90">${labels.pixels}</span>
+          <span class="font-semibold">${p.pixelCount ?? "—"}</span>
         </div>
-        <div style="margin-top:4px;color:#4ade80;font-size:10px">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</div>
+        <div class="mt-1.5 text-emerald-500 text-[10px]">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</div>
       </div>
     </div>
   `;
@@ -107,7 +110,7 @@ function drawGrid(map, points, layerRef, renderer, opacity) {
 }
 
 // ─── Calendar ────────────────────────────────────────────────────────────────
-function Calendar({ availableDates, selectedDate, onSelect }) {
+function Calendar({ availableDates, selectedDate, onSelect, t }) {
   const today = new Date();
   const [viewYear, setViewYear] = useState(() => {
     if (availableDates?.length) {
@@ -156,38 +159,58 @@ function Calendar({ availableDates, selectedDate, onSelect }) {
     else setViewMonth(m => m + 1);
   };
 
-  const selStr  = selectedDate ? String(selectedDate).slice(0, 10) : null;
+  const selStr   = selectedDate ? String(selectedDate).slice(0, 10) : null;
   const todayIso = today.toISOString().slice(0, 10);
 
   return (
     <>
-      <div className="cal-nav">
-        <button className="cal-nav-btn" onClick={goPrev} aria-label="Previous month">‹</button>
-        <span className="cal-month-label">{MONTHS[viewMonth]} {viewYear}</span>
-        <button className="cal-nav-btn" onClick={goNext} aria-label="Next month">›</button>
+      <div className="flex items-center justify-between mb-3">
+        <button
+          className="h-7 w-7 rounded-lg flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-150"
+          onClick={goPrev}
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 tracking-tight">
+          {MONTHS[viewMonth]} {viewYear}
+        </span>
+        <button
+          className="h-7 w-7 rounded-lg flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-150"
+          onClick={goNext}
+          aria-label="Next month"
+        >
+          ›
+        </button>
       </div>
 
-      <div className="cal-weekdays">
-        {WDAYS.map(w => <div key={w} className="cal-wday">{w}</div>)}
+      <div className="grid grid-cols-7 mb-1">
+        {WDAYS.map(w => (
+          <div key={w} className="text-center text-[10px] font-semibold text-slate-400 dark:text-slate-500 py-1">
+            {w}
+          </div>
+        ))}
       </div>
 
-      <div className="cal-grid">
+      <div className="grid grid-cols-7 gap-1">
         {cells.map((c, i) => {
           const isSel   = !c.otherMonth && c.iso === selStr;
           const isToday = !c.otherMonth && c.iso === todayIso;
-          const cls = [
-            "cal-day",
-            c.otherMonth  ? "other-month" : "",
-            c.hasData     ? "has-data"    : "",
-            isSel         ? "selected"    : "",
-            isToday       ? "today"       : "",
-          ].filter(Boolean).join(" ");
+          const base = "aspect-square flex items-center justify-center rounded-lg text-xs font-medium transition-all duration-150 select-none";
+          const state = c.otherMonth
+            ? "text-slate-300 dark:text-slate-700"
+            : isSel
+              ? "bg-emerald-600 text-white shadow-sm shadow-emerald-500/30 cursor-pointer"
+              : c.hasData
+                ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 hover:scale-105 cursor-pointer"
+                : "text-slate-400 dark:text-slate-600 cursor-default";
+          const ring = isToday && !isSel ? "ring-1 ring-inset ring-emerald-400" : "";
           return (
             <div
               key={i}
-              className={cls}
+              className={`${base} ${state} ${ring}`}
               onClick={() => c.hasData && onSelect(c.iso)}
-              title={c.hasData ? `Snapshot: ${c.iso}` : undefined}
+              title={c.hasData ? t("history.dateHasData") : undefined}
             >
               {c.day}
             </div>
@@ -195,28 +218,30 @@ function Calendar({ availableDates, selectedDate, onSelect }) {
         })}
       </div>
 
-      <div className="cal-avail-note">
+      <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-3 text-center font-medium">
         {availableDates?.length
-          ? `${availableDates.length} snapshot${availableDates.length !== 1 ? "s" : ""} available`
-          : "No data for this farm"}
+          ? `${availableDates.length} ${availableDates.length !== 1 ? t("history.snapshotsAvailable") : t("history.snapshotAvailable")}`
+          : t("history.noDataFarm")}
       </div>
-      <div className="cal-avail-legend">
-        <div className="cal-legend-dot" />
-        <span className="cal-legend-text">Date has satellite data</span>
+      <div className="flex items-center gap-1.5 justify-center mt-1.5">
+        <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        <span className="text-[10px] text-slate-400 dark:text-slate-500">{t("history.dateHasData")}</span>
       </div>
     </>
   );
 }
 
 // ─── AI Analysis Panel ────────────────────────────────────────────────────────
-function AiPanel({ data, loading, error }) {
+function AiPanel({ data, loading, error, t }) {
   if (loading) {
     return (
-      <div className="hist-section hist-ai-card">
-        <div className="hist-section-label">AI analysis</div>
-        <div className="hist-ai-loading">
-          <div className="hist-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
-          <span>Running satellite intelligence…</span>
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+          {t("history.aiAnalysis")}
+        </div>
+        <div className="flex items-center gap-2.5 text-xs text-slate-400 dark:text-slate-500 py-2">
+          <div className="h-3.5 w-3.5 rounded-full border-2 border-emerald-400/30 border-t-emerald-500 animate-spin" />
+          <span>{t("history.aiRunning")}</span>
         </div>
       </div>
     );
@@ -224,9 +249,11 @@ function AiPanel({ data, loading, error }) {
 
   if (error) {
     return (
-      <div className="hist-section hist-ai-card">
-        <div className="hist-section-label">AI analysis</div>
-        <div className="hist-ai-error">{error}</div>
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+          {t("history.aiAnalysis")}
+        </div>
+        <div className="text-xs text-rose-500 dark:text-rose-400 py-1">{error}</div>
       </div>
     );
   }
@@ -234,76 +261,85 @@ function AiPanel({ data, loading, error }) {
   if (!data) return null;
 
   const statusMap = {
-    "HIGH RISK": { color: "#c0392b", bg: "rgba(224,74,74,0.1)",  label: "High Risk"  },
-    "MODERATE":  { color: "#b7770d", bg: "rgba(239,159,39,0.1)", label: "Moderate"   },
-    "UNCERTAIN": { color: "#6b7280", bg: "rgba(107,114,128,0.1)",label: "Uncertain"  },
-    "HEALTHY":   { color: "#0f6e56", bg: "rgba(29,158,117,0.1)", label: "Healthy"    },
+    "HIGH RISK": { color: "#c0392b", bg: "rgba(224,74,74,0.1)",   label: t("history.badgeHigh") },
+    "MODERATE":  { color: "#b7770d", bg: "rgba(239,159,39,0.1)",  label: t("history.badgeModerate") },
+    "UNCERTAIN": { color: "#6b7280", bg: "rgba(107,114,128,0.1)", label: t("history.badgeUncertain") },
+    "HEALTHY":   { color: "#0f6e56", bg: "rgba(29,158,117,0.1)",  label: t("history.badgeHealthy") },
   };
   const s = statusMap[data.healthStatus] ?? statusMap["UNCERTAIN"];
 
   const metrics = [
-    { label: "NDVI",   value: data.avgNdvi  != null ? (+data.avgNdvi).toFixed(3)  : null },
-    { label: "NDMI",   value: data.avgNdmi  != null ? (+data.avgNdmi).toFixed(3)  : null },
-    { label: "Risk",   value: data.avgRisk  != null ? `${(+data.avgRisk).toFixed(1)}%` : null,
+    { label: t("history.avgNdvi"), value: data.avgNdvi  != null ? (+data.avgNdvi).toFixed(3)  : null },
+    { label: t("history.avgNdmi"), value: data.avgNdmi  != null ? (+data.avgNdmi).toFixed(3)  : null },
+    { label: t("history.high"),   value: data.avgRisk  != null ? `${(+data.avgRisk).toFixed(1)}%` : null,
       color: data.avgRisk >= 60 ? "#c0392b" : data.avgRisk >= 30 ? "#b7770d" : "#0f6e56" },
-    { label: "NDVI Δ", value: data.ndviTrend != null
+    { label: `${t("history.avgNdvi")} Δ`, value: data.ndviTrend != null
         ? `${data.ndviTrend >= 0 ? "+" : ""}${(+data.ndviTrend).toFixed(3)}` : null,
       color: data.ndviTrend < 0 ? "#c0392b" : "#0f6e56" },
-    { label: "Risk Δ", value: data.riskTrend != null
+    { label: `${t("history.high")} Δ`, value: data.riskTrend != null
         ? `${data.riskTrend >= 0 ? "+" : ""}${(+data.riskTrend).toFixed(1)}` : null,
       color: data.riskTrend > 0 ? "#c0392b" : "#0f6e56" },
     { label: "Cloud",  value: data.cloudCoverPct != null ? `${(+data.cloudCoverPct).toFixed(1)}%` : null },
   ];
 
   return (
-    <div className="hist-section hist-ai-card">
-      <div className="hist-section-label">AI analysis</div>
+    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 transition-shadow duration-200 hover:shadow-md">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+        {t("history.aiAnalysis")}
+      </div>
 
       {/* Status badge */}
-      <div className="hist-ai-status" style={{ background: s.bg, color: s.color }}>
+      <div
+        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold mb-2.5"
+        style={{ background: s.bg, color: s.color }}
+      >
         {s.label}
-        <span className="hist-ai-conf">· {Math.round(data.confidenceScore * 100)}% confidence</span>
+        <span className="font-normal opacity-70">· {Math.round(data.confidenceScore * 100)}% {t("history.confidence")}</span>
       </div>
 
       {/* Narrative */}
       {(data.aiExplanation || data.recommendation) && (
-        <p className="hist-ai-text">
+        <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 mb-3">
           {data.aiExplanation || data.recommendation}
         </p>
       )}
 
       {/* Flags */}
       {(data.isCloudAffected || data.isWeatherAffected || data.isTemporaryAnomaly || data.isSuspectSpike) && (
-        <div className="hist-ai-flags">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {data.isCloudAffected && (
-            <span className="hist-ai-flag" style={{ color: "#185fa5", borderColor: "#b5d4f4", background: "#e6f1fb" }}>
-              ☁ Cloud
+            <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                  style={{ color: "#185fa5", borderColor: "#b5d4f4", background: "#e6f1fb" }}>
+              ☁ {t("history.flagCloud")}
             </span>
           )}
           {data.isWeatherAffected && (
-            <span className="hist-ai-flag" style={{ color: "#0f6e56", borderColor: "#9fe1cb", background: "#e1f5ee" }}>
-              🌧 Weather
+            <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                  style={{ color: "#0f6e56", borderColor: "#9fe1cb", background: "#e1f5ee" }}>
+              🌧 {t("history.flagWeather")}
             </span>
           )}
           {data.isTemporaryAnomaly && (
-            <span className="hist-ai-flag" style={{ color: "#854f0b", borderColor: "#fac775", background: "#faeeda" }}>
-              ⚡ Anomaly
+            <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                  style={{ color: "#854f0b", borderColor: "#fac775", background: "#faeeda" }}>
+              ⚡ {t("history.flagAnomaly")}
             </span>
           )}
           {data.isSuspectSpike && (
-            <span className="hist-ai-flag" style={{ color: "#993c1d", borderColor: "#f5c4b3", background: "#faece7" }}>
-              ⚠ Spike
+            <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                  style={{ color: "#993c1d", borderColor: "#f5c4b3", background: "#faece7" }}>
+              ⚠ {t("history.flagSpike")}
             </span>
           )}
         </div>
       )}
 
       {/* Metrics grid */}
-      <div className="hist-ai-metrics">
+      <div className="grid grid-cols-3 gap-2">
         {metrics.map(({ label, value, color }) => (
-          <div className="hist-ai-metric" key={label}>
-            <div className="hist-ai-metric-lbl">{label}</div>
-            <div className="hist-ai-metric-val" style={{ color: color ?? "#111" }}>
+          <div className="flex flex-col items-center gap-0.5 rounded-lg bg-slate-50 dark:bg-slate-800 py-2" key={label}>
+            <div className="text-[9px] uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold">{label}</div>
+            <div className="text-sm font-bold tabular-nums" style={{ color: color ?? "#111" }}>
               {value ?? "—"}
             </div>
           </div>
@@ -316,7 +352,7 @@ function AiPanel({ data, loading, error }) {
 // ─── Logo SVG ─────────────────────────────────────────────────────────────────
 function LeafIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="w-5 h-5 fill-white">
       <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c0-5.5-4-10-10-10 5.5 0 10 4 10 10 0-5.5 4-10 10-10S17.5 2 12 2z" />
     </svg>
   );
@@ -324,6 +360,9 @@ function LeafIcon() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function FarmHistory() {
+  const { t, language } = useLanguage();
+  const { isDark } = useTheme();
+
   const mapRef        = useRef(null);
   const rendererRef   = useRef(null);
   const gridRef       = useRef(null);
@@ -331,6 +370,19 @@ export function FarmHistory() {
   const cellLookupRef = useRef(new Map());
   const popupRef      = useRef(null);
   const farmBoundsRef = useRef(null);
+
+  // Keeps translated popup labels fresh for the Leaflet click handler,
+  // which is attached once on mount (see init effect below).
+  const popupLabelsRef = useRef({});
+  popupLabelsRef.current = {
+    high: t("history.high"),
+    medium: t("history.medium"),
+    low: t("history.low"),
+    cell: t("history.cell"),
+    avgNdvi: t("history.avgNdvi"),
+    avgNdmi: t("history.avgNdmi"),
+    pixels: t("history.pixels"),
+  };
 
   const [farms,         setFarms]         = useState([]);
   const [selectedFarm,  setSelectedFarm]  = useState(null);
@@ -361,12 +413,12 @@ export function FarmHistory() {
       { attribution: "Esri", maxNativeZoom: 19, maxZoom: 22 }
     ).addTo(map);
 
-    popupRef.current = L.popup({ maxWidth: 220 });
+    popupRef.current = L.popup({ maxWidth: 220, className: "farm-popup" });
     map.on("click", (e) => {
       const key = `${Math.round(e.latlng.lat / CELL_DEG)}_${Math.round(e.latlng.lng / CELL_DEG)}`;
       const p   = cellLookupRef.current.get(key);
       if (!p) return;
-      popupRef.current.setLatLng(e.latlng).setContent(popupHtml(p)).openOn(map);
+      popupRef.current.setLatLng(e.latlng).setContent(popupHtml(p, popupLabelsRef.current)).openOn(map);
     });
 
     map.whenReady(() => {
@@ -501,13 +553,18 @@ export function FarmHistory() {
     setAiError(null);
     setAiLoading(true);
 
-    axios.get(`${API}/api/farmhistory/${farmId}/ai-analysis`, { params: { date: dateParam } })
+    axios.get(`${API}/api/farmhistory/${farmId}/ai-analysis`, {
+        params: {
+          date: dateParam,
+          language: language
+        }
+      })
       .then(({ data }) => setAiData(data))
-      .catch(() => setAiError("AI analysis unavailable for this snapshot."))
+      .catch(() => setAiError(t("history.aiUnavailable")))
       .finally(() => setAiLoading(false));
 
-  }, [selectedFarm, selectedDate, mapReady]);
-
+  }, [selectedFarm, selectedDate, mapReady, language]);
+  
   // ── Helpers ───────────────────────────────────────────────────────────────
   const riskPct      = (count) => summary?.totalCells ? Math.round((count / summary.totalCells) * 100) : 0;
   const avgRiskColor = summary
@@ -515,24 +572,50 @@ export function FarmHistory() {
     : "#0f6e56";
 
   return (
-    <div id="hist-root">
+    <div id="hist-root" className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 font-sans antialiased">
+
+      {/* Scoped extras Tailwind can't express: leaflet chrome + scrollbar + spin timing */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: ${isDark ? "#334155" : "#cbd5e1"}; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: ${isDark ? "#475569" : "#94a3b8"}; }
+
+        .farm-popup .leaflet-popup-content-wrapper {
+          background: #0b1f16;
+          border: 1px solid rgba(16,185,129,0.25);
+          border-radius: 14px;
+          box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+        }
+        .farm-popup .leaflet-popup-content { margin: 14px 16px; }
+        .farm-popup .leaflet-popup-tip { background: #0b1f16; border: 1px solid rgba(16,185,129,0.25); }
+        .farm-popup .leaflet-popup-close-button { color: #6ee7b7 !important; }
+
+        .leaflet-control-zoom { border: none !important; box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important; border-radius: 10px !important; overflow: hidden; }
+        .leaflet-control-zoom a { background: rgba(15,23,25,0.9) !important; color: #d1fae5 !important; border: none !important; }
+        .leaflet-control-zoom a:hover { background: #10b981 !important; color: #fff !important; }
+      `}</style>
 
       {/* ── Header ── */}
-      <div className="hist-header">
-        <div className="hist-brand">
-          <div className="hist-logo">
+      <div className="sticky top-0 z-20 flex items-center justify-between bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-3.5 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-md shadow-emerald-500/20">
             <LeafIcon />
           </div>
           <div>
-            <div className="hist-title">Farm History</div>
-            <div className="hist-sub">Satellite · NDVI · Risk Analysis</div>
+            <div className="text-[15px] font-semibold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
+              {t("history.title")}
+            </div>
+            <div className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-semibold">
+              {t("history.subtitle")}
+            </div>
           </div>
         </div>
 
         <div>
           {farms.length > 1 ? (
             <select
-              className="hist-select"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer transition-colors duration-150 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               value={selectedFarm?.farmId ?? ""}
               onChange={e => {
                 const f = farms.find(x => x.farmId === Number(e.target.value));
@@ -544,8 +627,8 @@ export function FarmHistory() {
               ))}
             </select>
           ) : farms.length === 1 ? (
-            <div className="hist-farm-pill">
-              <div className="hist-farm-dot" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               {farms[0].name}
             </div>
           ) : null}
@@ -553,73 +636,76 @@ export function FarmHistory() {
       </div>
 
       {/* ── Main ── */}
-      <div className="hist-main">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 p-4 flex-1 min-h-0">
 
         {/* Map */}
-        <div className="hist-map-wrap">
+        <div className="relative rounded-2xl overflow-hidden shadow-md border border-slate-200 dark:border-slate-800 bg-slate-900 min-h-[320px]">
           {loadingPixels && (
-            <div className="hist-map-overlay">
-              <div className="hist-spinner" />
-              LOADING SNAPSHOT
+            <div className="absolute inset-0 z-[500] flex flex-col items-center justify-center gap-3 bg-slate-900/70 backdrop-blur-sm text-emerald-300 text-[11px] font-semibold tracking-[0.2em] uppercase transition-opacity duration-200">
+              <div className="h-8 w-8 rounded-full border-2 border-emerald-400/30 border-t-emerald-400 animate-spin" />
+              {t("history.loadingSnapshot")}
             </div>
           )}
-          <div id="hist-map" />
+          <div id="hist-map" className="absolute inset-0" />
           {selectedDate && !loadingPixels && (
-            <div className="hist-date-badge">
-              <div className="hist-badge-dot" />
+            <div className="absolute bottom-4 left-4 z-[400] flex items-center gap-2 rounded-full bg-slate-900/80 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-emerald-200 shadow-lg border border-emerald-500/20">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {String(selectedDate).slice(0, 10)}
             </div>
           )}
         </div>
 
         {/* Side panel */}
-        <div className="hist-side">
+        <div className="flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
 
           {/* Calendar */}
-          <div className="hist-section">
-            <div className="hist-section-label">
-              {loadingDates ? "Loading dates…" : "Snapshot date"}
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 transition-shadow duration-200 hover:shadow-md">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+              {loadingDates ? t("history.loadingDates") : t("history.snapshotDate")}
             </div>
             {!loadingDates ? (
               <Calendar
                 availableDates={dates}
                 selectedDate={selectedDate}
                 onSelect={setSelectedDate}
+                t={t}
               />
             ) : (
-              <div className="hist-empty">
-                <div className="hist-spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
+              <div className="flex items-center justify-center py-6">
+                <div className="h-5 w-5 rounded-full border-2 border-emerald-400/30 border-t-emerald-500 animate-spin" />
               </div>
             )}
           </div>
 
           {/* Snapshot stats */}
-          <div className="hist-section">
-            <div className="hist-section-label">Snapshot stats</div>
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 transition-shadow duration-200 hover:shadow-md">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+              {t("history.stats")}
+            </div>
             {summary ? (
-              <div className="hist-stats-grid">
-                <div className="hist-stat-item">
-                  <span className="hist-stat-val" style={{ color: "#185fa5" }}>{summary.totalCells}</span>
-                  <span className="hist-stat-lbl">Total cells</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-0.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3">
+                  <span className="text-xl font-bold tabular-nums" style={{ color: "#185fa5" }}>{summary.totalCells}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold">{t("history.totalCells")}</span>
                 </div>
-                <div className="hist-stat-item">
-                  <span className="hist-stat-val" style={{ color: avgRiskColor }}>{(+summary.avgRisk).toFixed(1)}%</span>
-                  <span className="hist-stat-lbl">Avg risk</span>
+                <div className="flex flex-col gap-0.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3">
+                  <span className="text-xl font-bold tabular-nums" style={{ color: avgRiskColor }}>{(+summary.avgRisk).toFixed(1)}%</span>
+                  <span className="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold">{t("history.avgRisk")}</span>
                 </div>
-                <div className="hist-stat-item">
-                  <span className="hist-stat-val" style={{ color: "#c0392b" }}>{(+summary.maxRisk).toFixed(1)}%</span>
-                  <span className="hist-stat-lbl">Peak risk</span>
+                <div className="flex flex-col gap-0.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3">
+                  <span className="text-xl font-bold tabular-nums" style={{ color: "#c0392b" }}>{(+summary.maxRisk).toFixed(1)}%</span>
+                  <span className="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold">{t("history.peakRisk")}</span>
                 </div>
-                <div className="hist-stat-item">
-                  <span className="hist-stat-val" style={{ color: "#c0392b" }}>{summary.highRisk}</span>
-                  <span className="hist-stat-lbl">High risk cells</span>
+                <div className="flex flex-col gap-0.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3">
+                  <span className="text-xl font-bold tabular-nums" style={{ color: "#c0392b" }}>{summary.highRisk}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold">{t("history.highRiskCells")}</span>
                 </div>
               </div>
             ) : (
-              <div className="hist-empty">
-                <div className="hist-empty-icon">📊</div>
-                <div className="hist-empty-text">
-                  {selectedDate ? "Loading…" : "Pick a date on the\ncalendar above"}
+              <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
+                <div className="text-2xl opacity-40">📊</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500 whitespace-pre-line">
+                  {selectedDate ? t("history.loading") : t("history.pickDatePrompt")}
                 </div>
               </div>
             )}
@@ -627,21 +713,26 @@ export function FarmHistory() {
 
           {/* Risk distribution */}
           {summary && (
-            <div className="hist-section">
-              <div className="hist-section-label">Risk distribution</div>
+            <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 transition-shadow duration-200 hover:shadow-md">
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+                {t("history.riskDistribution")}
+              </div>
               {[
-                { label: "High",   count: summary.highRisk,   color: "#e24b4a" },
-                { label: "Medium", count: summary.mediumRisk, color: "#ef9f27" },
-                { label: "Low",    count: summary.lowRisk,    color: "#1d9e75" },
+                { label: t("history.high"),   count: summary.highRisk,   color: "#e24b4a" },
+                { label: t("history.medium"), count: summary.mediumRisk, color: "#ef9f27" },
+                { label: t("history.low"),    count: summary.lowRisk,    color: "#1d9e75" },
               ].map(({ label, count, color }) => {
                 const pct = riskPct(count);
                 return (
-                  <div className="hist-risk-row" key={label}>
-                    <div className="hist-risk-label">{label}</div>
-                    <div className="hist-risk-track">
-                      <div className="hist-risk-fill" style={{ width: `${pct}%`, background: color }} />
+                  <div className="flex items-center gap-2 py-1.5 text-xs" key={label}>
+                    <div className="w-14 text-slate-500 dark:text-slate-400 font-medium">{label}</div>
+                    <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${pct}%`, background: color }}
+                      />
                     </div>
-                    <div className="hist-risk-pct">{pct}%</div>
+                    <div className="w-9 text-right font-semibold text-slate-700 dark:text-slate-200 tabular-nums">{pct}%</div>
                   </div>
                 );
               })}
@@ -650,17 +741,19 @@ export function FarmHistory() {
 
           {/* Vegetation indices */}
           {summary && (
-            <div className="hist-section">
-              <div className="hist-section-label">Vegetation indices</div>
+            <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 transition-shadow duration-200 hover:shadow-md">
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+                {t("history.vegetation")}
+              </div>
               {[
-                { name: "Avg NDVI", val: summary.avgNDVI != null ? (+summary.avgNDVI).toFixed(4) : "—" },
-                { name: "Avg NDMI", val: summary.avgNDMI != null ? (+summary.avgNDMI).toFixed(4) : "—" },
-                { name: "Snapshot", val: String(selectedDate).slice(0, 10) },
-                { name: "Total cells", val: summary.totalCells },
+                { name: t("history.avgNdvi"), val: summary.avgNDVI != null ? (+summary.avgNDVI).toFixed(4) : "—" },
+                { name: t("history.avgNdmi"), val: summary.avgNDMI != null ? (+summary.avgNDMI).toFixed(4) : "—" },
+                { name: t("history.snapshotLabel"), val: String(selectedDate).slice(0, 10) },
+                { name: t("history.totalCells"), val: summary.totalCells },
               ].map(({ name, val }) => (
-                <div className="hist-index-row" key={name}>
-                  <span className="hist-index-name">{name}</span>
-                  <span className="hist-index-val">{val}</span>
+                <div className="flex items-center justify-between py-1.5 text-xs border-b border-slate-50 dark:border-slate-800 last:border-0" key={name}>
+                  <span className="text-slate-500 dark:text-slate-400">{name}</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{val}</span>
                 </div>
               ))}
             </div>
@@ -668,15 +761,17 @@ export function FarmHistory() {
 
           {/* AI Analysis */}
           {selectedDate && (
-            <AiPanel data={aiData} loading={aiLoading} error={aiError} />
+            <AiPanel data={aiData} loading={aiLoading} error={aiError} t={t} />
           )}
 
           {/* Risk legend */}
-          <div className="hist-section">
-            <div className="hist-section-label">Risk index</div>
-            <div className="hist-legend-bar" />
-            <div className="hist-legend-labels">
-              <span>0 Low</span><span>25</span><span>50</span><span>75</span><span>100 High</span>
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 mb-1">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+              {t("history.riskIndex")}
+            </div>
+            <div className="h-2 rounded-full bg-gradient-to-r from-[#ffffb2] via-[#fd8d3c] to-[#bd0026]" />
+            <div className="flex justify-between mt-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+              <span>0 {t("history.lowEnd")}</span><span>25</span><span>50</span><span>75</span><span>100 {t("history.highEnd")}</span>
             </div>
           </div>
 

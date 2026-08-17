@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { to: "/dashboard",         label: "Home",        icon: "🏠" },
   { to: "/dashboard/fields",  label: "Fields",      icon: "🌾" },
   { to: "/dashboard/Farmhistory",     label: "Farm Health History",    icon: "🗺️" },
-  { to: "/dashboard/predict", label: "Predictions", icon: "📈" },
+  { to: "/dashboard/FarmForecast", label: "Predictions", icon: "📈" },
   { to: "/dashboard/reports", label: "Reports",     icon: "📋" },
 ];
 
@@ -17,7 +17,7 @@ const PAGE_TITLES = {
   "/dashboard":         { title: "Dashboard",   sub: "Overview of your farm health" },
   "/dashboard/fields":  { title: "Fields",      sub: "Manage and monitor field zones" },
   "/dashboard/Farmhistory":     { title: "Farm Health History",    sub: "Farm Health History visualization" },
-  "/dashboard/predict": { title: "Predictions", sub: "AI-powered health forecasting" },
+  "/dashboard/FarmForecast": { title: "Predictions", sub: "AI-powered health forecasting" },
   "/dashboard/reports": { title: "Reports",     sub: "Export & analyze data" },
   "/dashboard/profile": { title: "Profile",     sub: "Account settings" },
 };

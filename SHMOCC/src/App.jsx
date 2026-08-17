@@ -2,116 +2,84 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Shared entry point (common across team members)
 import Mainpage from "./pages/Home/mainpage";
-
-// vidura's part only
-import Landing from "./pages/vidura/Landing";
+import DashboardLayout from "./pages/vidura/dashboard/DashboardLayout";
 import Login from "./pages/vidura/Login";
 import Signup from "./pages/vidura/Signup";
 import AuthLayout from "./pages/vidura/AuthLayout";
+
 import FarmMap from "./pages/vidura/FarmMap";
 import Home from "./pages/vidura/dashboard/Home";
-import Fields from "./pages/vidura/dashboard/Fields";
 import Map from "./pages/vidura/dashboard/Map";
-import Predict from "./pages/vidura/dashboard/Predict";
 import Reports from "./pages/vidura/dashboard/Reports";
 import Profile from "./pages/vidura/dashboard/Profile";
 import Farmhistory from "./pages/vidura/dashboard/Farmhistory";
-///Nimesha's part 
-import Cinnamon from "./pages/Nimesha/Cinnamon";
-import GradeMarketAuth from "./pages/Nimesha/GradeMarketAuth";
-import History from "./pages/Nimesha/History";
-import Admin from "./pages/Nimesha/Admin";
+import FarmRegister from "./pages/vidura/dashboard/Fields";
+import FarmForecast from "./pages/vidura/dashboard/FarmForecast";
 
-// ── Auth guard: redirect to /login if no token ──────────────────────────────
-function PrivateRoute({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" replace />;
+const TOKEN_KEY = "token_vidura";
+const DASHBOARD_PATH = "/plantation-health/dashboard";
+const LOGIN_PATH = "/plantation-health/login";
+
+// ── Auth guard: redirect to login if no token ───────────────────────────────
+function PrivateRouteVidura({ children }) {
+  const token = localStorage.getItem(TOKEN_KEY);
+  return token ? children : <Navigate to={LOGIN_PATH} replace />;
 }
 
-// ── Public-only route: redirect to /dashboard if already logged in ───────────
-function PublicRoute({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? <Navigate to="/dashboard" replace /> : children;
-}
-
-//cinnamon auth 
-function CinnamonPrivateRoute({ children }) {
-  const token = localStorage.getItem("cinnamonToken");
-
-  return token ? children : <Navigate to="/cinnamon/login" replace />;
+// ── Keeps logged-in users out of /login and /signup ─────────────────────────
+function PublicRouteVidura({ children }) {
+  const token = localStorage.getItem(TOKEN_KEY);
+  return token ? <Navigate to={DASHBOARD_PATH} replace /> : children;
 }
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Shared entry point */}
         <Route path="/" element={<Mainpage />} />
 
-        {/*<Route path="/cinnamon" element={<Cinnamon />} />*/}
-
-        {/* vidura's landing, kept reachable separately */}
-        <Route path="/landing" element={<Landing />} />
-
-        {/* Public */}
-        <Route path="/login"  element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-
-        {/* Cinnamon auth */}
         <Route
-          path="/cinnamon/login"
+          path="/plantation-health/login"
           element={
-            localStorage.getItem("cinnamonToken") ? (
-              <Navigate to="/cinnamon" replace />
-            ) : (
-              <GradeMarketAuth />
-            )
+            <PublicRouteVidura>
+              <Login />
+            </PublicRouteVidura>
+          }
+        />
+        <Route
+          path="/plantation-health/signup"
+          element={
+            <PublicRouteVidura>
+              <Signup />
+            </PublicRouteVidura>
           }
         />
 
         <Route
-          path="/cinnamon"
+          path={DASHBOARD_PATH}
           element={
-            <CinnamonPrivateRoute>
-              <Cinnamon />
-            </CinnamonPrivateRoute>
+            <PrivateRouteVidura>
+              <DashboardLayout />
+            </PrivateRouteVidura>
           }
-        />
-        <Route
-          path="/cinnamon/history"
-          element={
-            <CinnamonPrivateRoute>
-              <History />
-            </CinnamonPrivateRoute>
-          }
-        />
-
-        <Route
-          path="/cinnamon/admin"
-          element={
-            <CinnamonPrivateRoute>
-              <Admin />
-            </CinnamonPrivateRoute>
-          }
-        />
-
-        {/* Protected — all wrapped inside vidura's AuthLayout */}
-        <Route
-          path="/dashboard"
-          element={<PrivateRoute><AuthLayout /></PrivateRoute>}
         >
-          <Route index          element={<Home />} />
-          <Route path="fields"  element={<Fields />} />
-          <Route path="map"     element={<Map />} />
-          <Route path="predict" element={<Predict />} />
+          <Route index element={<Home />} />
+          <Route path="fields/register" element={<FarmRegister />} />
+          <Route path="fields/farm" element={<FarmMap />} />
+          <Route path="map" element={<Map />} />
           <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="Farmhistory" element={<Farmhistory />} />
-          <Route path="fields/farm" element={<FarmMap />} />
+          <Route path="farmhistory" element={<Farmhistory />} />
+          <Route path="FarmForecast" element={<FarmForecast />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="*"
+          element={<Navigate to="/plantation-health/login" replace />}
+        />
       </Routes>
     </BrowserRouter>
   );
 }
+
+export { TOKEN_KEY, DASHBOARD_PATH, LOGIN_PATH };

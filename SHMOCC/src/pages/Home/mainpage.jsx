@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
-import GradeMarketAuth from "../Nimesha/GradeMarketAuth";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { TOKEN_KEY, DASHBOARD_PATH, LOGIN_PATH } from "../../App";
 
 const COMPONENTS = [
   {
@@ -35,6 +36,12 @@ const COMPONENTS = [
       "AR bundle capture, mixed-grade detection, and GPS-based profit routing to the best buyer.",
   },
 ];
+
+// ids that should leave this single-page app entirely and go to a real route,
+// instead of just swapping the local "active" tab
+const EXTERNAL_ROUTES = {
+  "plantation-health": true,
+};
 
 const INK = "#2B2620";
 const INK_SOFT = "#726A5C";
@@ -170,11 +177,6 @@ function Home({ onNavigate }) {
 }
 
 function ComponentPage({ component, onNavigate }) {
-
-   if (component.id === "grade-market") {
-    return <GradeMarketAuth />;
-  }
-
   return (
     <main className="mx-auto max-w-[1280px] px-8 py-24 sm:px-12">
       <button
@@ -210,8 +212,21 @@ function ComponentPage({ component, onNavigate }) {
 
 export default function App() {
   const [active, setActive] = useState("home");
+  const navigate = useNavigate();
   const activeComponent = COMPONENTS.find((c) => c.id === active);
-  const iframeRef = useRef(null);
+
+  // Single entry point for every card / nav click in this page.
+  // Most ids just switch the local tab. "plantation-health" instead
+  // leaves this page entirely and goes to the real dashboard route,
+  // routing through login first if there's no token.
+  const handleNavigate = (id) => {
+    if (EXTERNAL_ROUTES[id]) {
+      const token = localStorage.getItem(TOKEN_KEY);
+      navigate(token ? DASHBOARD_PATH : LOGIN_PATH);
+      return;
+    }
+    setActive(id);
+  };
 
   return (
     <div className="min-h-screen" style={{ background: PAPER, fontFamily: "Inter, system-ui, sans-serif" }}>
@@ -220,30 +235,12 @@ export default function App() {
         .font-serif { font-family: 'Fraunces', serif; }
       `}</style>
 
-      <TopNav active={active} onNavigate={setActive} />
+      <TopNav active={active} onNavigate={handleNavigate} />
 
-      {/* Iframe always mounted, just hidden when not active */}
-      <iframe
-        ref={iframeRef}
-        src="https://cinnamonsync.netlify.app/login"
-        style={{
-          width: "100%",
-          height: "calc(100vh - 80px)",
-          border: "none",
-          display: active === "labor" ? "block" : "none",
-          position: active === "labor" ? "relative" : "absolute",
-        }}
-        title="Peeler Dispatch Workspace"
-      />
-
-      {active !== "labor" && (
-        <>
-          {active === "home" || !activeComponent ? (
-            <Home onNavigate={setActive} />
-          ) : (
-            <ComponentPage component={activeComponent} onNavigate={setActive} />
-          )}
-        </>
+      {active === "home" || !activeComponent ? (
+        <Home onNavigate={handleNavigate} />
+      ) : (
+        <ComponentPage component={activeComponent} onNavigate={handleNavigate} />
       )}
     </div>
   );

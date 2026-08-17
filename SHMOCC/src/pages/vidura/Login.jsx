@@ -1,101 +1,98 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Add this line
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import AuthLayout from "./AuthLayout";
+import { TOKEN_KEY, DASHBOARD_PATH } from "../../App";
 
 export default function Login() {
   const [data, setData] = useState({ username: "", passwordHash: "" });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   const handleLogin = async () => {
     setLoading(true);
     try {
       const res = await axios.post("https://localhost:44331/api/auth/login", data);
 
-      console.log("API Response:", res.data); 
-  
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.userId); 
-      localStorage.setItem("userName", res.data.user); 
-      
-      alert("Welcome " + res.data.user); 
-      navigate("/dashboard"); 
-      
+      localStorage.setItem(TOKEN_KEY, res.data.token);
+      localStorage.setItem("userId", res.data.userId);
+      localStorage.setItem("userName", res.data.user);
+
+      navigate(DASHBOARD_PATH);
     } catch (err) {
       alert(err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <AuthLayout>
-      <style>{formStyles}</style>
-
-      <div className="fg-panel">
-        <div className="fg-heading">
-          <h2 className="fg-title">Welcome back</h2>
-          <p className="fg-subtitle">
+      <div className="w-full max-w-[340px]">
+        <div className="mb-7">
+          <h2 className="text-[1.8rem] font-bold text-[#1a4028]">Welcome back</h2>
+          <p className="text-sm text-gray-500">
             Monitor your farmland with satellite intelligence.
           </p>
         </div>
 
-        <div className="fg-form">
-
+        <div className="flex flex-col gap-5">
           {/* EMAIL */}
-          <div className="fg-input-line">
+          <div className="flex items-center gap-2.5 border-b-[1.5px] border-[#cbd5d1] focus-within:border-b-2 focus-within:border-[#22c55e] px-1 py-2.5">
             <MailIcon />
             <input
               type="text"
               placeholder="Email ID"
               value={data.username}
-              onChange={(e) =>
-                setData({ ...data, username: e.target.value })
-              }
+              onChange={(e) => setData({ ...data, username: e.target.value })}
+              className="w-full border-none outline-none bg-transparent text-[0.95rem] text-gray-800 placeholder:text-gray-400"
             />
           </div>
 
           {/* PASSWORD */}
-          <div className="fg-input-line">
+          <div className="flex items-center gap-2.5 border-b-[1.5px] border-[#cbd5d1] focus-within:border-b-2 focus-within:border-[#22c55e] px-1 py-2.5 relative">
             <LockIcon />
             <input
               type={showPass ? "text" : "password"}
               placeholder="Password"
               value={data.passwordHash}
-              onChange={(e) =>
-                setData({ ...data, passwordHash: e.target.value })
-              }
+              onChange={(e) => setData({ ...data, passwordHash: e.target.value })}
+              className="w-full border-none outline-none bg-transparent text-[0.95rem] text-gray-800 placeholder:text-gray-400"
             />
-
             <button
-              className="fg-eye"
-              onClick={() => setShowPass((v) => !v)}
               type="button"
+              onClick={() => setShowPass((v) => !v)}
+              className="bg-none border-none cursor-pointer text-slate-500"
             >
               {showPass ? <EyeOff /> : <EyeOn />}
             </button>
           </div>
 
-          <button className="fg-btn" onClick={handleLogin} disabled={loading}>
+          <button
+            onClick={handleLogin}
+            disabled={loading}
+            className="rounded-lg bg-[#1a4028] text-white py-3 cursor-pointer disabled:opacity-60"
+          >
             {loading ? "Signing in…" : "Sign in"}
           </button>
 
-          <div className="fg-divider">
-            <span className="fg-divider-line" />
-            <span className="fg-divider-text">or</span>
-            <span className="fg-divider-line" />
+          <div className="flex items-center gap-2.5">
+            <span className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">or</span>
+            <span className="flex-1 h-px bg-gray-200" />
           </div>
 
-          <button className="fg-google-btn">
+          <button className="rounded-md border border-gray-200 bg-white py-2.5 cursor-pointer text-slate-500 flex items-center justify-center gap-2">
             <GoogleIcon /> Continue with Google
           </button>
         </div>
 
-        <p className="fg-footer">
+        <p className="text-center text-[0.8rem] mt-6">
           Don't have an account?{" "}
-          <a href="/signup" className="fg-link">
+          <Link to="/plantation-health/signup" className="text-orange-500">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </AuthLayout>
@@ -105,14 +102,14 @@ export default function Login() {
 /* ICONS */
 
 const MailIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg className="w-[18px] h-[18px] text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M4 4h16v16H4z" />
     <path d="M4 4l8 8 8-8" />
   </svg>
 );
 
 const LockIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg className="w-[18px] h-[18px] text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="3" y="11" width="18" height="11" rx="2" />
     <path d="M7 11V7a5 5 0 0110 0v4" />
   </svg>
@@ -141,117 +138,3 @@ const GoogleIcon = () => (
     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.89C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
   </svg>
 );
-
-export const formStyles = `
-.fg-panel {
-  width: 100%;
-  max-width: 340px;
-}
-
-.fg-heading {
-  margin-bottom: 30px;
-}
-
-.fg-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1a4028;
-}
-
-.fg-subtitle {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.fg-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.fg-input-line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1.5px solid #cbd5d1;
-  padding: 10px 4px;
-  position: relative;
-}
-
-.fg-input-line:focus-within {
-  border-bottom: 2px solid #22c55e;
-}
-
-.fg-input-line input {
-  border: none;
-  outline: none;
-  width: 100%;
-  font-size: 0.95rem; /* Slightly larger for readability */
-  background: transparent;
-  color: #1f2937; /* Add this: Dark gray/black color */
-}
-
-/* Also ensure the placeholder is visible but distinct */
-.fg-input-line input::placeholder {
-  color: #9ca3af;
-}
-.fg-input-line svg {
-  width: 18px;
-  height: 18px;
-  color: #64748b;
-}
-
-.fg-eye {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #64748b;
-}
-
-/* BUTTON */
-.fg-btn {
-  padding: 12px;
-  border: none;
-  background: #1a4028;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* DIVIDER */
-.fg-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.fg-divider-line {
-  flex: 1;
-  height: 1px;
-  background: #e5e7eb;
-}
-
-.fg-divider-text {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.fg-google-btn {
-  padding: 10px;
-  border: 1px solid #ddd;
-  background: white;
-  cursor: pointer;
-  color: #64748b;
-}
-
-
-/* FOOTER */
-.fg-footer {
-  text-align: center;
-  font-size: 0.8rem;
-}
-
-.fg-link {
-  color: #f97316;
-}
-`;
