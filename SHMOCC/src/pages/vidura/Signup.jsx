@@ -1,8 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import AuthLayout from "./AuthLayout";
-import { formStyles } from "./Login";
-
 /** * 1. FIXED: Component defined OUTSIDE to prevent focus loss 
  * 2. STYLING: Uses 'fg-input-line' to match Login 
  */
