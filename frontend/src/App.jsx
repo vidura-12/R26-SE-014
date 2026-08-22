@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ThemeProvider from './context/ThemeProvider';
 import { AuthProvider } from "./context/AuthContext";
 import Landing from "./pages/Landing";
 import SignUp from "./pages/SignUp";
@@ -11,7 +12,9 @@ import Advisory from "./pages/Advisory";
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
+      
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -27,6 +30,8 @@ export default function App() {
            <Route path="/advisory" element={<Advisory />} /> 
         </Routes>
       </BrowserRouter>
+      
     </AuthProvider>
+    </ThemeProvider>
   );
 }
