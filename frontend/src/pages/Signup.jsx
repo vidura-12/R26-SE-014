@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeProvider";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -37,8 +38,109 @@ const EXPERIENCE_LEVELS = [
   "Expert (10+ years)",
 ];
 
+// ─── Theme Tokens ──────────────────────────────────────────────────────────
+function getTokens(isDark) {
+  return isDark
+    ? {
+        pageBg: "#0a1f14",
+        rightPanelBg: "#0a1f14",
+        accentGradient: "linear-gradient(135deg,#2d8a4e,#1a5c2e)",
+        stepInactiveBg: "#122318",
+        stepInactiveText: "#5f8a70",
+        stepInactiveBorder: "2px solid #254a34",
+        stepLineInactive: "#254a34",
+        stepLineActive: "linear-gradient(90deg,#2d8a4e,#4caf73)",
+        textPrimary: "#eaf5ee",
+        textSecondary: "#8fb89e",
+        labelColor: "#9fd6b3",
+        hintColor: "#6f9c81",
+        inputBorder: "#254a34",
+        inputBorderFocus: "#3fae6a",
+        inputBg: "#0f2015",
+        inputBgFocus: "#132a1c",
+        inputText: "#eaf5ee",
+        focusRing: "rgba(63,174,106,0.22)",
+        errorColor: "#ff8080",
+        strengthTrack: "#22402c",
+        strengthNeutral: "#5f8a70",
+        termsBg: "#122318",
+        termsBorder: "#254a34",
+        termsText: "#bfe3cd",
+        linkColor: "#4cc27f",
+        backBtnBorder: "#254a34",
+        backBtnBg: "#0f2015",
+        backBtnText: "#9fd6b3",
+        buttonDisabled: "#22422e",
+        buttonShadow: "0 6px 20px rgba(45,138,78,0.45)",
+        leftPanelGradient: "linear-gradient(160deg,#0e3320 0%,#081f10 60%,#050f08 100%)",
+      }
+    : {
+        pageBg: "#f2faf5",
+        rightPanelBg: "#f2faf5",
+        accentGradient: "linear-gradient(135deg,#2d8a4e,#1a5c2e)",
+        stepInactiveBg: "white",
+        stepInactiveText: "#9cb8a8",
+        stepInactiveBorder: "2px solid #d4e8db",
+        stepLineInactive: "#d4e8db",
+        stepLineActive: "linear-gradient(90deg,#2d8a4e,#4caf73)",
+        textPrimary: "#0f2d1a",
+        textSecondary: "#7aaa8a",
+        labelColor: "#1a5c2e",
+        hintColor: "#7aaa8a",
+        inputBorder: "#cde4d5",
+        inputBorderFocus: "#2d8a4e",
+        inputBg: "white",
+        inputBgFocus: "#f7fdf9",
+        inputText: "#0f2d1a",
+        focusRing: "rgba(44,138,78,0.12)",
+        errorColor: "#e05252",
+        strengthTrack: "#e0ede5",
+        strengthNeutral: "#9cb8a8",
+        termsBg: "#f7fdf9",
+        termsBorder: "#cde4d5",
+        termsText: "#2a5c3a",
+        linkColor: "#1a5c2e",
+        backBtnBorder: "#cde4d5",
+        backBtnBg: "white",
+        backBtnText: "#1a5c2e",
+        buttonDisabled: "#9cb8a8",
+        buttonShadow: "0 6px 20px rgba(44,138,78,0.35)",
+        leftPanelGradient: "linear-gradient(160deg,#1a5c2e 0%,#0e3d1e 60%,#0a2412 100%)",
+      };
+}
+
+// ─── Theme Toggle Button ───────────────────────────────────────────────────
+function ThemeToggle({ isDark, toggleTheme, t }) {
+  return (
+    <button
+      onClick={toggleTheme}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      style={{
+        position: "absolute",
+        top: 20,
+        right: 20,
+        width: 42,
+        height: 42,
+        borderRadius: 12,
+        border: `1.5px solid ${t.inputBorder}`,
+        background: t.inputBg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 18,
+        cursor: "pointer",
+        boxShadow: isDark ? "0 4px 16px rgba(0,0,0,0.4)" : "0 4px 16px rgba(26,92,46,0.1)",
+        transition: "all 0.2s",
+        zIndex: 2,
+      }}
+    >
+      {isDark ? "☀️" : "🌙"}
+    </button>
+  );
+}
+
 // ─── Step Indicator ───────────────────────────────────────────────────────────
-function StepIndicator({ current, total }) {
+function StepIndicator({ current, total, t }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 36 }}>
       {Array.from({ length: total }).map((_, i) => (
@@ -47,13 +149,9 @@ function StepIndicator({ current, total }) {
             width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontWeight: 700, fontSize: 14,
-            background: i < current
-              ? "linear-gradient(135deg,#2d8a4e,#1a5c2e)"
-              : i === current
-              ? "linear-gradient(135deg,#2d8a4e,#1a5c2e)"
-              : "white",
-            color: i <= current ? "white" : "#9cb8a8",
-            border: i <= current ? "none" : "2px solid #d4e8db",
+            background: i <= current ? t.accentGradient : t.stepInactiveBg,
+            color: i <= current ? "white" : t.stepInactiveText,
+            border: i <= current ? "none" : t.stepInactiveBorder,
             boxShadow: i === current ? "0 4px 16px rgba(44,138,78,0.4)" : "none",
             transition: "all 0.4s",
             zIndex: 1,
@@ -67,9 +165,7 @@ function StepIndicator({ current, total }) {
           {i < total - 1 && (
             <div style={{
               flex: 1, height: 2,
-              background: i < current
-                ? "linear-gradient(90deg,#2d8a4e,#4caf73)"
-                : "#d4e8db",
+              background: i < current ? t.stepLineActive : t.stepLineInactive,
               transition: "background 0.4s",
             }} />
           )}
@@ -80,46 +176,47 @@ function StepIndicator({ current, total }) {
 }
 
 // ─── Input Field ──────────────────────────────────────────────────────────────
-function Field({ label, hint, error, children }) {
+function Field({ label, hint, error, children, t }) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#1a5c2e", marginBottom: 6, letterSpacing: "0.02em" }}>
+      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: t.labelColor, marginBottom: 6, letterSpacing: "0.02em" }}>
         {label}
       </label>
       {children}
-      {hint && !error && <div style={{ fontSize: 12, color: "#7aaa8a", marginTop: 5 }}>{hint}</div>}
-      {error && <div style={{ fontSize: 12, color: "#e05252", marginTop: 5 }}>{error}</div>}
+      {hint && !error && <div style={{ fontSize: 12, color: t.hintColor, marginTop: 5 }}>{hint}</div>}
+      {error && <div style={{ fontSize: 12, color: t.errorColor, marginTop: 5 }}>{error}</div>}
     </div>
   );
 }
 
-const inputStyle = (focused, error) => ({
+const inputStyle = (focused, error, t) => ({
   width: "100%", padding: "11px 14px", borderRadius: 12, fontSize: 15,
-  border: `1.5px solid ${error ? "#e05252" : focused ? "#2d8a4e" : "#cde4d5"}`,
-  background: focused ? "#f7fdf9" : "white",
-  outline: "none", boxSizing: "border-box", color: "#0f2d1a",
+  border: `1.5px solid ${error ? t.errorColor : focused ? t.inputBorderFocus : t.inputBorder}`,
+  background: focused ? t.inputBgFocus : t.inputBg,
+  outline: "none", boxSizing: "border-box", color: t.inputText,
   transition: "all 0.2s",
-  boxShadow: focused ? "0 0 0 3px rgba(44,138,78,0.12)" : "none",
+  boxShadow: focused ? `0 0 0 3px ${t.focusRing}` : "none",
 });
 
-function TextInput({ value, onChange, placeholder, type = "text", error }) {
+function TextInput({ value, onChange, placeholder, type = "text", error, t }) {
   const [focused, setFocused] = useState(false);
   return (
     <input
       type={type} value={value} onChange={onChange} placeholder={placeholder}
-      style={inputStyle(focused, error)}
+      style={inputStyle(focused, error, t)}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
     />
   );
 }
 
-function SelectInput({ value, onChange, options, placeholder, error }) {
+function SelectInput({ value, onChange, options, placeholder, error, t }) {
   const [focused, setFocused] = useState(false);
+  const arrowColor = t.inputBorderFocus === "#3fae6a" ? "%233fae6a" : "%232d8a4e";
   return (
     <select
       value={value} onChange={onChange}
-      style={{ ...inputStyle(focused, error), appearance: "none", cursor: "pointer", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24' stroke='%232d8a4e' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center" }}
+      style={{ ...inputStyle(focused, error, t), appearance: "none", cursor: "pointer", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24' stroke='${arrowColor}' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center" }}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
     >
@@ -129,12 +226,12 @@ function SelectInput({ value, onChange, options, placeholder, error }) {
   );
 }
 
-function TextareaInput({ value, onChange, placeholder, rows = 3, error }) {
+function TextareaInput({ value, onChange, placeholder, rows = 3, error, t }) {
   const [focused, setFocused] = useState(false);
   return (
     <textarea
       value={value} onChange={onChange} placeholder={placeholder} rows={rows}
-      style={{ ...inputStyle(focused, error), resize: "vertical", fontFamily: "inherit" }}
+      style={{ ...inputStyle(focused, error, t), resize: "vertical", fontFamily: "inherit" }}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
     />
@@ -142,7 +239,7 @@ function TextareaInput({ value, onChange, placeholder, rows = 3, error }) {
 }
 
 // ─── Password Strength ────────────────────────────────────────────────────────
-function PasswordStrength({ password }) {
+function PasswordStrength({ password, t }) {
   const checks = [
     password.length >= 8,
     /[A-Z]/.test(password),
@@ -157,10 +254,10 @@ function PasswordStrength({ password }) {
     <div style={{ marginTop: 8 }}>
       <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
         {[0,1,2,3].map(i => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 99, background: i < score ? colors[score - 1] : "#e0ede5", transition: "all 0.3s" }} />
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 99, background: i < score ? colors[score - 1] : t.strengthTrack, transition: "all 0.3s" }} />
         ))}
       </div>
-      <div style={{ fontSize: 11, color: score > 0 ? colors[score - 1] : "#9cb8a8", fontWeight: 600 }}>
+      <div style={{ fontSize: 11, color: score > 0 ? colors[score - 1] : t.strengthNeutral, fontWeight: 600 }}>
         {score > 0 ? labels[score - 1] : ""}
       </div>
     </div>
@@ -170,6 +267,9 @@ function PasswordStrength({ password }) {
 // ─── Main SignUp ──────────────────────────────────────────────────────────────
 export default function SignUp() {
   const nav = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
+  const t = getTokens(isDark);
+
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -278,27 +378,27 @@ export default function SignUp() {
       `}</style>
       <div style={{
         minHeight: "100vh", display: "flex", alignItems: "center",
-        justifyContent: "center", background: "#f2faf5", flexDirection: "column",
+        justifyContent: "center", background: t.pageBg, flexDirection: "column",
         gap: 20, padding: 24,
       }}>
         <div className="success-icon" style={{
           width: 96, height: 96, borderRadius: "50%",
-          background: "linear-gradient(135deg,#2d8a4e,#1a5c2e)",
+          background: t.accentGradient,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 44, boxShadow: "0 12px 40px rgba(44,138,78,0.35)",
         }}>🌿</div>
 
         <h2 className="success-title" style={{
           fontFamily: "'Playfair Display',serif", fontSize: 32,
-          fontWeight: 900, color: "#0f2d1a", textAlign: "center",
+          fontWeight: 900, color: t.textPrimary, textAlign: "center",
         }}>
           Account Created Successfully!
         </h2>
 
         <p className="success-sub" style={{
-          color: "#7aaa8a", fontSize: 16, textAlign: "center", maxWidth: 360, lineHeight: 1.6,
+          color: t.textSecondary, fontSize: 16, textAlign: "center", maxWidth: 360, lineHeight: 1.6,
         }}>
-          Welcome to CinnaPredict, <strong style={{ color: "#1a5c2e" }}>{form.firstName}</strong>!
+          Welcome to CinnaPredict, <strong style={{ color: t.labelColor }}>{form.firstName}</strong>!
           Your plantation profile has been saved and you're all set.
         </p>
 
@@ -307,7 +407,7 @@ export default function SignUp() {
           onClick={() => nav("/dashboard")}
           style={{
             marginTop: 8, padding: "14px 40px", borderRadius: 12, border: "none",
-            background: "linear-gradient(135deg,#2d8a4e,#1a5c2e)", color: "white",
+            background: t.accentGradient, color: "white",
             fontSize: 15, fontWeight: 700, cursor: "pointer",
             boxShadow: "0 6px 20px rgba(44,138,78,0.35)", transition: "all 0.2s",
           }}
@@ -332,11 +432,12 @@ export default function SignUp() {
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
         .step-panel { animation: fadeSlide 0.4s ease both; }
-        .left-panel-img { position:absolute;inset:0;background:linear-gradient(160deg,#1a5c2e 0%,#0e3d1e 60%,#0a2412 100%); }
+        .left-panel-img { position:absolute;inset:0;background:${t.leftPanelGradient}; }
         .leaf-deco { position:absolute;opacity:0.07;pointer-events:none; }
+        .theme-toggle:hover { transform: scale(1.06); }
       `}</style>
 
-      <div style={{ minHeight: "100vh", display: "flex", background: "#f2faf5" }}>
+      <div style={{ minHeight: "100vh", display: "flex", background: t.pageBg, transition: "background 0.4s" }}>
 
         {/* ── Left Panel ── */}
         <div style={{ width: 420, flexShrink: 0, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 48 }}>
@@ -388,44 +489,50 @@ export default function SignUp() {
         </div>
 
         {/* ── Right Panel ── */}
-        <div style={{ flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"40px 24px",overflowY:"auto" }}>
+        <div style={{ flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"40px 24px",overflowY:"auto",position:"relative",background:t.rightPanelBg,transition:"background 0.4s" }}>
+
+          {/* Theme toggle */}
+          <div className="theme-toggle" style={{ transition: "transform 0.2s" }}>
+            <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} t={t} />
+          </div>
+
           <div style={{ width:"100%",maxWidth:540 }}>
 
             {/* Step header */}
             <div style={{ marginBottom:32 }}>
               <div style={{ fontSize:28,marginBottom:8 }}>{stepLabels[step].icon}</div>
-              <h2 style={{ fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#0f2d1a",marginBottom:6 }}>{stepLabels[step].title}</h2>
-              <p style={{ fontSize:14,color:"#7aaa8a" }}>{stepLabels[step].sub}</p>
+              <h2 style={{ fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:t.textPrimary,marginBottom:6 }}>{stepLabels[step].title}</h2>
+              <p style={{ fontSize:14,color:t.textSecondary }}>{stepLabels[step].sub}</p>
             </div>
 
             {/* Step indicator */}
-            <StepIndicator current={step} total={3} />
+            <StepIndicator current={step} total={3} t={t} />
 
             {/* ── Step 0: Account ── */}
             {step === 0 && (
               <div className="step-panel">
                 <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
-                  <Field label="First Name" error={errors.firstName}>
-                    <TextInput value={form.firstName} onChange={set("firstName")} placeholder="Kasun" error={errors.firstName}/>
+                  <Field label="First Name" error={errors.firstName} t={t}>
+                    <TextInput value={form.firstName} onChange={set("firstName")} placeholder="Kasun" error={errors.firstName} t={t}/>
                   </Field>
-                  <Field label="Last Name" error={errors.lastName}>
-                    <TextInput value={form.lastName} onChange={set("lastName")} placeholder="Perera" error={errors.lastName}/>
+                  <Field label="Last Name" error={errors.lastName} t={t}>
+                    <TextInput value={form.lastName} onChange={set("lastName")} placeholder="Perera" error={errors.lastName} t={t}/>
                   </Field>
                 </div>
-                <Field label="Email Address" error={errors.email}>
-                  <TextInput value={form.email} onChange={set("email")} placeholder="kasun@example.com" type="email" error={errors.email}/>
+                <Field label="Email Address" error={errors.email} t={t}>
+                  <TextInput value={form.email} onChange={set("email")} placeholder="kasun@example.com" type="email" error={errors.email} t={t}/>
                 </Field>
-                <Field label="Password" hint="At least 8 characters with uppercase and numbers" error={errors.password}>
+                <Field label="Password" hint="At least 8 characters with uppercase and numbers" error={errors.password} t={t}>
                   <div style={{ position:"relative" }}>
-                    <TextInput value={form.password} onChange={set("password")} placeholder="Create a strong password" type={showPass ? "text" : "password"} error={errors.password}/>
-                    <button onClick={() => setShowPass(s=>!s)} style={{ position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#5a8a6a",fontSize:18,lineHeight:1 }}>
+                    <TextInput value={form.password} onChange={set("password")} placeholder="Create a strong password" type={showPass ? "text" : "password"} error={errors.password} t={t}/>
+                    <button onClick={() => setShowPass(s=>!s)} style={{ position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:t.textSecondary,fontSize:18,lineHeight:1 }}>
                       {showPass ? "🙈" : "👁"}
                     </button>
                   </div>
-                  <PasswordStrength password={form.password}/>
+                  <PasswordStrength password={form.password} t={t}/>
                 </Field>
-                <Field label="Confirm Password" error={errors.confirmPassword}>
-                  <TextInput value={form.confirmPassword} onChange={set("confirmPassword")} placeholder="Repeat your password" type="password" error={errors.confirmPassword}/>
+                <Field label="Confirm Password" error={errors.confirmPassword} t={t}>
+                  <TextInput value={form.confirmPassword} onChange={set("confirmPassword")} placeholder="Repeat your password" type="password" error={errors.confirmPassword} t={t}/>
                 </Field>
               </div>
             )}
@@ -433,22 +540,22 @@ export default function SignUp() {
             {/* ── Step 1: Farm Details ── */}
             {step === 1 && (
               <div className="step-panel">
-                <Field label="Farm / Plantation Name" error={errors.farmName}>
-                  <TextInput value={form.farmName} onChange={set("farmName")} placeholder="e.g. Green Valley Cinnamon Estate" error={errors.farmName}/>
+                <Field label="Farm / Plantation Name" error={errors.farmName} t={t}>
+                  <TextInput value={form.farmName} onChange={set("farmName")} placeholder="e.g. Green Valley Cinnamon Estate" error={errors.farmName} t={t}/>
                 </Field>
                 <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
-                  <Field label="District" error={errors.district}>
-                    <SelectInput value={form.district} onChange={set("district")} options={SRI_LANKA_DISTRICTS} placeholder="Select district" error={errors.district}/>
+                  <Field label="District" error={errors.district} t={t}>
+                    <SelectInput value={form.district} onChange={set("district")} options={SRI_LANKA_DISTRICTS} placeholder="Select district" error={errors.district} t={t}/>
                   </Field>
-                  <Field label="Farm Size" error={errors.farmSize}>
-                    <SelectInput value={form.farmSize} onChange={set("farmSize")} options={FARM_SIZE_OPTIONS} placeholder="Select size" error={errors.farmSize}/>
+                  <Field label="Farm Size" error={errors.farmSize} t={t}>
+                    <SelectInput value={form.farmSize} onChange={set("farmSize")} options={FARM_SIZE_OPTIONS} placeholder="Select size" error={errors.farmSize} t={t}/>
                   </Field>
                 </div>
-                <Field label="Plantation Address / GPS Location" hint="Street address, village, or GPS coordinates">
-                  <TextInput value={form.address} onChange={set("address")} placeholder="e.g. Matara Road, Akuressa"/>
+                <Field label="Plantation Address / GPS Location" hint="Street address, village, or GPS coordinates" t={t}>
+                  <TextInput value={form.address} onChange={set("address")} placeholder="e.g. Matara Road, Akuressa" t={t}/>
                 </Field>
-                <Field label="Cinnamon Variety Grown" hint="Select the primary variety on your farm">
-                  <SelectInput value={form.variety} onChange={set("variety")} options={CINNAMON_VARIETIES} placeholder="Select variety"/>
+                <Field label="Cinnamon Variety Grown" hint="Select the primary variety on your farm" t={t}>
+                  <SelectInput value={form.variety} onChange={set("variety")} options={CINNAMON_VARIETIES} placeholder="Select variety" t={t}/>
                 </Field>
               </div>
             )}
@@ -457,29 +564,29 @@ export default function SignUp() {
             {step === 2 && (
               <div className="step-panel">
                 <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
-                  <Field label="Farming Experience" error={errors.experience}>
-                    <SelectInput value={form.experience} onChange={set("experience")} options={EXPERIENCE_LEVELS} placeholder="Select level" error={errors.experience}/>
+                  <Field label="Farming Experience" error={errors.experience} t={t}>
+                    <SelectInput value={form.experience} onChange={set("experience")} options={EXPERIENCE_LEVELS} placeholder="Select level" error={errors.experience} t={t}/>
                   </Field>
-                  <Field label="Phone Number" hint="Optional — for SMS alerts">
-                    <TextInput value={form.phone} onChange={set("phone")} placeholder="+94 77 123 4567" type="tel"/>
+                  <Field label="Phone Number" hint="Optional — for SMS alerts" t={t}>
+                    <TextInput value={form.phone} onChange={set("phone")} placeholder="+94 77 123 4567" type="tel" t={t}/>
                   </Field>
                 </div>
-                <Field label="About Your Farm" hint="Brief description to personalise your experience">
-                  <TextareaInput value={form.bio} onChange={set("bio")} placeholder="Tell us about your plantation — crops, challenges, goals..." rows={4}/>
+                <Field label="About Your Farm" hint="Brief description to personalise your experience" t={t}>
+                  <TextareaInput value={form.bio} onChange={set("bio")} placeholder="Tell us about your plantation — crops, challenges, goals..." rows={4} t={t}/>
                 </Field>
 
                 {/* Terms */}
-                <div style={{ marginBottom:24,padding:18,background:"#f7fdf9",borderRadius:14,border:"1.5px solid #cde4d5" }}>
+                <div style={{ marginBottom:24,padding:18,background:t.termsBg,borderRadius:14,border:`1.5px solid ${t.termsBorder}` }}>
                   <label style={{ display:"flex",alignItems:"flex-start",gap:12,cursor:"pointer" }}>
                     <input
                       type="checkbox" checked={form.agreedToTerms} onChange={set("agreedToTerms")}
                       style={{ marginTop:3,accentColor:"#2d8a4e",width:16,height:16,flexShrink:0 }}
                     />
-                    <span style={{ fontSize:13,color:"#2a5c3a",lineHeight:1.6 }}>
-                      I agree to the <span style={{ color:"#1a5c2e",fontWeight:700,textDecoration:"underline",cursor:"pointer" }}>Terms of Service</span> and <span style={{ color:"#1a5c2e",fontWeight:700,textDecoration:"underline",cursor:"pointer" }}>Privacy Policy</span>. My farm data will only be used for research and advisory purposes.
+                    <span style={{ fontSize:13,color:t.termsText,lineHeight:1.6 }}>
+                      I agree to the <span style={{ color:t.linkColor,fontWeight:700,textDecoration:"underline",cursor:"pointer" }}>Terms of Service</span> and <span style={{ color:t.linkColor,fontWeight:700,textDecoration:"underline",cursor:"pointer" }}>Privacy Policy</span>. My farm data will only be used for research and advisory purposes.
                     </span>
                   </label>
-                  {errors.agreedToTerms && <div style={{ fontSize:12,color:"#e05252",marginTop:8 }}>{errors.agreedToTerms}</div>}
+                  {errors.agreedToTerms && <div style={{ fontSize:12,color:t.errorColor,marginTop:8 }}>{errors.agreedToTerms}</div>}
                 </div>
               </div>
             )}
@@ -487,16 +594,16 @@ export default function SignUp() {
             {/* ── Navigation Buttons ── */}
             <div style={{ display:"flex",gap:12,marginTop:8 }}>
               {step > 0 && (
-                <button onClick={back} style={{ flex:1,padding:"14px",borderRadius:12,border:"1.5px solid #cde4d5",background:"white",color:"#1a5c2e",fontSize:15,fontWeight:600,cursor:"pointer",transition:"all 0.2s" }}>
+                <button onClick={back} style={{ flex:1,padding:"14px",borderRadius:12,border:`1.5px solid ${t.backBtnBorder}`,background:t.backBtnBg,color:t.backBtnText,fontSize:15,fontWeight:600,cursor:"pointer",transition:"all 0.2s" }}>
                   ← Back
                 </button>
               )}
               {step < 2 ? (
-                <button onClick={next} style={{ flex:2,padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#2d8a4e,#1a5c2e)",color:"white",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:"0 6px 20px rgba(44,138,78,0.35)",transition:"all 0.2s" }}>
+                <button onClick={next} style={{ flex:2,padding:"14px",borderRadius:12,border:"none",background:t.accentGradient,color:"white",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:t.buttonShadow,transition:"all 0.2s" }}>
                   Continue →
                 </button>
               ) : (
-                <button onClick={submit} disabled={loading} style={{ flex:2,padding:"14px",borderRadius:12,border:"none",background:loading?"#9cb8a8":"linear-gradient(135deg,#2d8a4e,#1a5c2e)",color:"white",fontSize:15,fontWeight:700,cursor:loading?"not-allowed":"pointer",boxShadow:"0 6px 20px rgba(44,138,78,0.35)",display:"flex",alignItems:"center",justifyContent:"center",gap:10,transition:"all 0.3s" }}>
+                <button onClick={submit} disabled={loading} style={{ flex:2,padding:"14px",borderRadius:12,border:"none",background:loading?t.buttonDisabled:t.accentGradient,color:"white",fontSize:15,fontWeight:700,cursor:loading?"not-allowed":"pointer",boxShadow:t.buttonShadow,display:"flex",alignItems:"center",justifyContent:"center",gap:10,transition:"all 0.3s" }}>
                   {loading ? (
                     <>
                       <div style={{ width:18,height:18,border:"2px solid rgba(255,255,255,0.3)",borderTop:"2px solid white",borderRadius:"50%",animation:"spin 0.8s linear infinite" }}/>
@@ -507,9 +614,9 @@ export default function SignUp() {
               )}
             </div>
 
-            <p style={{ textAlign:"center",marginTop:24,fontSize:14,color:"#7aaa8a" }}>
+            <p style={{ textAlign:"center",marginTop:24,fontSize:14,color:t.textSecondary }}>
               Already have an account?{" "}
-              <span onClick={() => nav("/login")} style={{ color:"#1a5c2e",fontWeight:700,cursor:"pointer",textDecoration:"underline" }}>Login</span>
+              <span onClick={() => nav("/login")} style={{ color:t.linkColor,fontWeight:700,cursor:"pointer",textDecoration:"underline" }}>Login</span>
             </p>
           </div>
         </div>
