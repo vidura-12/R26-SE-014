@@ -429,15 +429,7 @@ function DashboardShell() {
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", animation: "pulse 2.5s infinite", boxShadow: "0 0 8px rgba(34, 197, 94, 0.4)" }} />
                 {devices.filter(d => d.status === "online").length} devices online
               </div>
-              <button onClick={() => setShowRegisterModal(true)} style={{
-                background: "linear-gradient(135deg, #10b981, #059669)", color: "white",
-                border: "none", padding: "11px 22px", borderRadius: 14, fontSize: 14,
-                fontWeight: 800, cursor: "pointer",
-                boxShadow: "0 6px 20px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)",
-                transition: "all 0.25s", display: "flex", alignItems: "center", gap: 8,
-              }}>
-                <span style={{ fontSize: 18 }}>+</span> Register Device
-              </button>
+              
             </div>
           </div>
 
