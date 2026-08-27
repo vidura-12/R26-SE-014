@@ -1,0 +1,9 @@
+node_modules/
+uploads/
+.env
+weights/yolov8-2-best.pt
+weights/yolov8-3-best.pt
+weights/yolov8-4-best.pt
+weights/yolov11-2-best.pt
+weights/yolov11-best.pt
+weights/yolov12-best.pt

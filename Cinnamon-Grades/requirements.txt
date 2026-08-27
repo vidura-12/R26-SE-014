@@ -1,0 +1,6 @@
+ultralytics==8.0.200
+opencv-python-headless
+joblib
+pandas
+scikit-learn
+torch<2.6
