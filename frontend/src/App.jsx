@@ -7,7 +7,7 @@ import Landing from "./pages/Landing";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
-import Advisory from "./pages/Advisory";
+import Advisory from "./pages/dashboard/Advisory";
 
 import DashboardLayout from "./pages/dashboard/DashboardLayout";
 import Overview from "./pages/dashboard/Overview";
@@ -25,7 +25,7 @@ export default function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/advisory" element={<Advisory />} />
+            
 
             <Route
               path="/dashboard"
@@ -39,6 +39,7 @@ export default function App() {
               <Route path="devices" element={<Devices />} />
               <Route path="history" element={<History />} />
               <Route path="sensor-data" element={<SensorData />} />
+              <Route path="advisory" element={<Advisory />} />
             </Route>
           </Routes>
         </BrowserRouter>

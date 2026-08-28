@@ -12,12 +12,14 @@ const NAV_ITEMS = [
   { id: "devices",     icon: "📡", label: "Devices",     path: "/dashboard/devices" },
   { id: "history",     icon: "📋", label: "History",     path: "/dashboard/history" },
   { id: "sensor-data", icon: "📊", label: "Sensor Data", path: "/dashboard/sensor-data" },
+  { id: "advisory",    icon: "🛡️", label: "Advisory",    path: "/dashboard/advisory" },
 ];
 
 function getActiveTab(pathname) {
   if (pathname.startsWith("/dashboard/devices")) return "devices";
   if (pathname.startsWith("/dashboard/history")) return "history";
   if (pathname.startsWith("/dashboard/sensor-data")) return "sensor-data";
+  if (pathname.startsWith("/dashboard/advisory")) return "advisory";
   return "overview";
 }
 
@@ -353,11 +355,11 @@ function DashboardShell() {
               </button>
             ))}
 
-            <button className="tab-btn" onClick={() => nav("/advisory")}
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 14px", borderRadius: 12, marginBottom: 6, background: "transparent", borderLeft: "3px solid transparent" }}>
-              <span style={{ fontSize: 20, flexShrink: 0 }}>🛡️</span>
-              {sidebarOpen && <span style={{ fontSize: 14, fontWeight: 600, color: "#94a3b8", whiteSpace: "nowrap" }}>Advisory</span>}
-            </button>
+           <button className="tab-btn" onClick={() => nav("/dashboard/advisory")}
+  style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 14px", borderRadius: 12, marginBottom: 6, background: "transparent", borderLeft: "3px solid transparent" }}>
+  <span style={{ fontSize: 20, flexShrink: 0 }}>🛡️</span>
+  {sidebarOpen && <span style={{ fontSize: 14, fontWeight: 600, color: "#94a3b8", whiteSpace: "nowrap" }}>Advisory</span>}
+</button>
           </nav>
 
           <div style={{ padding: "20px 12px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
