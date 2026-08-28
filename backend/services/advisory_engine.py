@@ -4,6 +4,9 @@ from services.knowledge_base import collection
 def get_advisory(ph: float, moisture: float, temp: float, risk: str, confidence: float):
     """
     RAG retrieval + rule-based formatting for cinnamon WRR advisory.
+
+    `risk` is expected to be one of: "low", "medium", "high" (lowercase).
+    `confidence` is expected as a 0-1 fraction.
     """
     query = _build_rag_query(ph, moisture, temp, risk)
 
@@ -18,7 +21,7 @@ def get_advisory(ph: float, moisture: float, temp: float, risk: str, confidence:
             "soil_pH": ph,
             "soil_moisture_percent": moisture,
             "temperature_c": temp,
-            "predicted_risk": risk,
+            "risk_level": risk,
             "model_confidence": round(confidence, 3)
         },
         "retrieved_passages": results["documents"][0],
@@ -34,7 +37,7 @@ def get_advisory(ph: float, moisture: float, temp: float, risk: str, confidence:
 
 
 def _build_rag_query(ph: float, moisture: float, temp: float, risk: str) -> str:
-    """Map raw sensor values to semantic terms matching your KB."""
+    """Map raw sensor values to semantic terms matching your KB. (Unchanged — RAG untouched.)"""
     terms = []
 
     # pH mapping (aligned to YOUR KB)
@@ -72,12 +75,11 @@ def _build_rag_query(ph: float, moisture: float, temp: float, risk: str) -> str:
 
 
 def _generate_report(ph, moisture, temp, risk, confidence, results):
-    """Generate the human-readable advisory report."""
+    """Generate the human-readable advisory report. Only the risk tiers changed (low/medium/high)."""
     risk_meta = {
-        "low":      ("LOW RISK",      "Conditions are favorable. Continue regular monitoring."),
-        "moderate": ("MODERATE RISK", "Early warning signs detected. Take preventive action."),
-        "high":     ("HIGH RISK",     "Favorable conditions for White Root Rot. Act now."),
-        "critical": ("CRITICAL RISK", "URGENT: Critical conditions for White Root Rot. Immediate intervention required.")
+        "low":    ("LOW RISK",    "Conditions are favorable. Continue regular monitoring."),
+        "medium": ("MEDIUM RISK", "Early warning signs detected. Take preventive action."),
+        "high":   ("HIGH RISK",   "Favorable conditions for White Root Rot. Immediate action required.")
     }
     status, message = risk_meta.get(risk, ("UNKNOWN", "Risk level not recognized."))
 
@@ -115,26 +117,19 @@ KNOWLEDGE BASE INSIGHTS (Top Retrieved Passages):
 
 
 def _get_immediate_actions(risk: str, ph: float, moisture: float, temp: float):
-    """Condition-specific immediate actions from your KB."""
+    """Condition-specific immediate actions from your KB. Tiers: low / medium / high."""
     actions = []
 
-    if risk == "critical":
-        actions.extend([
-            "STOP irrigation immediately to reduce soil saturation",
-            "Dig contour drains urgently to remove excess water from root zones",
-            "Apply approved fungicide treatment (copper-based per DOA list 2019)",
-            "Consult an agricultural officer from the Department of Export Agriculture",
-            "Consider removing severely infected plants to prevent spread to neighboring bushes"
-        ])
-    elif risk == "high":
+    if risk == "high":
         actions.extend([
             "Improve field drainage immediately to prevent waterlogging",
             "Reduce irrigation frequency and allow soil surface to dry between waterings",
             "Apply preventive fungicide (copper-based fungicide per DOA recommendations)",
             "Increase plant spacing or prune side branches to improve air circulation",
-            "Inspect root zones for white fungal threads, bark cankers, or brown necrosis"
+            "Inspect root zones for white fungal threads, bark cankers, or brown necrosis",
+            "If symptoms are already visible, consult an agricultural officer from the Department of Export Agriculture"
         ])
-    elif risk == "moderate":
+    elif risk == "medium":
         actions.extend([
             "Improve field drainage to prevent future waterlogging",
             "Reduce irrigation frequency slightly",
@@ -149,9 +144,10 @@ def _get_immediate_actions(risk: str, ph: float, moisture: float, temp: float):
             "Maintain soil pH between 5.5 and 6.5 through periodic testing"
         ])
 
-    # Mandatory condition-specific injections (safety rules)
+    # Mandatory condition-specific injections (safety rules) — "critical" wording kept
+    # only for urgent language, not as a separate risk tier.
     if moisture > 60:
-        actions.insert(0, "CRITICAL: Soil moisture is dangerously high. Stop all irrigation NOW.")
+        actions.insert(0, "Urgent: Soil moisture is dangerously high. Stop all irrigation NOW.")
     if ph < 5.5:
         actions.append("Apply dolomite at 1000 kg/ha/yr to raise pH toward optimal 5.5-6.5 range")
     if ph > 6.5:
@@ -163,7 +159,7 @@ def _get_immediate_actions(risk: str, ph: float, moisture: float, temp: float):
 
 
 def _get_preventive_measures():
-    """Long-term preventive measures from your KB."""
+    """Long-term preventive measures from your KB. (Unchanged.)"""
     return [
         "Maintain ideal soil pH between 5.5 and 6.5 (test every 3 months)",
         "Ensure proper drainage with contour drains on sloped land",
@@ -179,19 +175,20 @@ def _get_preventive_measures():
 
 
 def _get_monitoring_plan(risk: str):
+    """Monitoring cadence per risk tier: low / medium / high."""
     plans = {
-        "critical": ("Daily inspection for 2 weeks, then every 3 days for 1 month. "
-                     "Check soil moisture and drainage after every rainfall."),
-        "high":     ("Inspect every 3 days for 1 month, then weekly for 2 months. "
-                     "Focus on leaf yellowing and root zone inspection."),
-        "moderate": ("Bi-weekly inspection for 2 months, then return to monthly schedule. "
-                     "Monitor for early symptom development."),
-        "low":      "Monthly routine monitoring. Record environmental conditions and plant health."
+        "high":   ("Inspect every 3 days for 1 month, then weekly for 2 months. "
+                   "Focus on leaf yellowing and root zone inspection. "
+                   "Check soil moisture and drainage after every rainfall."),
+        "medium": ("Bi-weekly inspection for 2 months, then return to monthly schedule. "
+                   "Monitor for early symptom development."),
+        "low":    "Monthly routine monitoring. Record environmental conditions and plant health."
     }
     return plans.get(risk, "Monthly routine monitoring")
 
 
 def _get_disclaimer(confidence: float):
+    """confidence is expected as a 0-1 fraction."""
     if confidence < 0.6:
         return ("WARNING: Low model confidence. This advisory should be verified by a field "
                 "agronomist before any action is taken.")

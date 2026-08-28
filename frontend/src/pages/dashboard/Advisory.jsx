@@ -8,32 +8,25 @@ import { rtdb } from "../../firebase";
 const API_BASE_URL = "http://localhost:8000";
 
 // ─── Risk styling (semantic colors, with dark-mode variants) ────────────────
+// NOTE: Critical tier removed — backend now folds "Critical" into "High".
+// Only three tiers are ever produced: low / medium / high.
 const RISK_CONFIG = {
-  critical: {
+  high: {
     color: "#dc2626",
     bg: "#fef2f2",
     bgDark: "linear-gradient(135deg, #2a1414, #241010)",
     border: "#fca5a5",
     borderDark: "#dc262660",
-    label: "Critical Risk",
+    label: "High Risk",
     gradient: "linear-gradient(135deg, #dc2626, #b91c1c)",
   },
-  high: {
-    color: "#ea580c",
-    bg: "#fff7ed",
-    bgDark: "linear-gradient(135deg, #2a1a10, #24160c)",
-    border: "#fdba74",
-    borderDark: "#ea580c60",
-    label: "High Risk",
-    gradient: "linear-gradient(135deg, #ea580c, #c2410c)",
-  },
-  moderate: {
+  medium: {
     color: "#ca8a04",
     bg: "#fefce8",
     bgDark: "linear-gradient(135deg, #2a2410, #241f0c)",
     border: "#fde047",
     borderDark: "#ca8a0460",
-    label: "Moderate Risk",
+    label: "Medium Risk",
     gradient: "linear-gradient(135deg, #ca8a04, #a16207)",
   },
   low: {
@@ -237,7 +230,10 @@ export default function Advisory() {
     boxSizing: "border-box", transition: "all 0.2s",
   });
 
-  const currentRisk = advisoryData?.input_conditions?.risk_level || "low";
+  // FIX: backend key is `risk_level` (was previously mismatched as `predicted_risk`
+  // on the backend, which made this always fall through to "low"). Also normalize
+  // to lowercase since the backend may send "Low"/"Medium"/"High".
+  const currentRisk = (advisoryData?.input_conditions?.risk_level || "low").toLowerCase();
   const riskCfg = RISK_CONFIG[currentRisk] || RISK_CONFIG.low;
   const riskBg = t.__isDark ? riskCfg.bgDark : riskCfg.bg;
   const riskBorder = t.__isDark ? riskCfg.borderDark : riskCfg.border;
@@ -524,9 +520,8 @@ export default function Advisory() {
                   {riskCfg.label}
                 </div>
                 <div style={{ fontSize: 15, color: t.textSecondary, fontWeight: 600, marginTop: 8, maxWidth: 500, lineHeight: 1.6 }}>
-                  {currentRisk === "critical" ? "URGENT: Critical conditions for White Root Rot detected. Immediate intervention is required to prevent tree loss."
-                    : currentRisk === "high" ? "Favorable conditions for White Root Rot have been detected. Preventive measures should be taken immediately."
-                    : currentRisk === "moderate" ? "Early warning signs detected. Take preventive action before conditions worsen."
+                  {currentRisk === "high" ? "Favorable conditions for White Root Rot have been detected. Preventive measures should be taken immediately."
+                    : currentRisk === "medium" ? "Early warning signs detected. Take preventive action before conditions worsen."
                     : "Soil conditions are favorable. Continue routine monitoring and maintenance practices."}
                 </div>
               </div>
@@ -601,7 +596,7 @@ export default function Advisory() {
                   <ActionCard
                     key={i}
                     text={action}
-                    isCritical={action.toLowerCase().includes("critical") || action.toLowerCase().includes("stop") || action.toLowerCase().includes("urgent")}
+                    isCritical={action.toLowerCase().includes("urgent") || action.toLowerCase().includes("stop")}
                     t={t}
                   />
                 ))}
