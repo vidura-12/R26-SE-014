@@ -1389,58 +1389,7 @@ function DashboardShell() {
             ))}
           </nav>
 
-          {/* Register Device */}
-          <div
-            style={{
-              padding: "20px 12px",
-              borderTop:
-                "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <button
-              onClick={() => setShowRegisterModal(true)}
-              style={{
-                width: "100%",
-                padding: "13px 14px",
-                borderRadius: 12,
-                border:
-                  "1.5px solid rgba(16, 185, 129, 0.4)",
-                background:
-                  "linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08))",
-                color: "#34d399",
-                fontWeight: 800,
-                fontSize: 13,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                justifyContent:
-                  sidebarOpen ? "flex-start" : "center",
-                transition: "all 0.2s",
-                boxShadow:
-                  "0 4px 12px rgba(16, 185, 129, 0.1)",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 20,
-                  flexShrink: 0,
-                }}
-              >
-                ➕
-              </span>
-
-              {sidebarOpen && (
-                <span
-                  style={{
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Register Device
-                </span>
-              )}
-            </button>
-          </div>
+          
 
           {/* Bottom Controls */}
           <div
