@@ -167,7 +167,7 @@ export default function Cinnamon() {
 
         const token = localStorage.getItem("cinnamonToken");
 
-        const res = await fetch("http://localhost:9000/upload", {
+        const res = await fetch("https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/upload", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
