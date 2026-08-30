@@ -78,7 +78,7 @@ export default function App() {
             </PrivateRouteVidura>
           }
         >
-          <Route index element={<Home />} />
+          <Route index element={<FarmRegister />} />
           <Route path="fields/register" element={<FarmRegister />} />
           <Route path="fields/farm" element={<FarmMap />} />
           <Route path="map" element={<Map />} />
