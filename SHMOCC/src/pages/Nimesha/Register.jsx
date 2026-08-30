@@ -17,7 +17,7 @@ export default function Register({ onBackToLogin }) {
 
     try {
       const response = await fetch(
-        "http://localhost:9000/api/auth/register",
+        "https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/api/auth/register",
         {
           method: "POST",
           headers: {

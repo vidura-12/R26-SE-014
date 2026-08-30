@@ -31,7 +31,7 @@ export default function Admin() {
     const token = localStorage.getItem("cinnamonToken");
 
     const response = await fetch(
-      "http://localhost:9000/api/admin/dashboard",
+      "https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/api/admin/dashboard",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -56,7 +56,7 @@ const fetchUsers = async () => {
     const token = localStorage.getItem("cinnamonToken");
 
     const response = await fetch(
-      "http://localhost:9000/api/admin/users",
+      "https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/api/admin/users",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -80,7 +80,7 @@ const deleteUser = async (id) => {
   try {
     const token = localStorage.getItem("cinnamonToken");
 
-    await fetch(`http://localhost:9000/api/admin/users/${id}`, {
+    await fetch(`https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/api/admin/users/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -100,7 +100,7 @@ const deleteDetection = async (id) => {
   try {
     const token = localStorage.getItem("cinnamonToken");
 
-    await fetch(`http://localhost:9000/api/admin/detections/${id}`, {
+    await fetch(`https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/api/admin/detections/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -121,7 +121,7 @@ const fetchDetections = async () => {
     const token = localStorage.getItem("cinnamonToken");
 
     const response = await fetch(
-      "http://localhost:9000/api/admin/detections",
+      "https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/api/admin/detections",
       {
         headers: {
           Authorization: `Bearer ${token}`,

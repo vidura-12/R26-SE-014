@@ -51,7 +51,7 @@ export default function History() {
     try {
       const token = localStorage.getItem("cinnamonToken");
 
-      const response = await fetch("http://localhost:9000/history", {
+      const response = await fetch("https://cinnamon-backend.agreeableisland-ddd74309.southeastasia.azurecontainerapps.io/history", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

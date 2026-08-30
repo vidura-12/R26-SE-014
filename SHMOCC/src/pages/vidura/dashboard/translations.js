@@ -29,6 +29,10 @@ export const translations = {
       submitting: "Registering…",
       clearBoundary: "Clear & Redraw",
       howToTitle: "How to Draw",
+      locateMe: "Go to my location",
+      youAreHere: "You are here",
+      locationDenied: "Location permission denied",
+      locationFailed: "Couldn't get your location",
       howToBody: "Use the polygon tool on the map to trace the outline of your farm. Click each corner, then click the first point again to close the shape.",
     },
 
@@ -110,6 +114,10 @@ export const translations = {
       alreadyRegisteredBody: "ඔබ දැනටමත් ගොවිපළක් ලියාපදිංචි කර ඇත",
       unnamedFarm: "ඔබේ ගොවිපළ",
       farmDetails: "ගොවිපළ විස්තර",
+      locateMe: "මගේ ස්ථානයට යන්න",
+      youAreHere: "ඔබ මෙහි සිටී",
+      locationDenied: "ස්ථාන අවසරය ප්‍රතික්ෂේප විය",
+      locationFailed: "ඔබේ ස්ථානය ලබාගත නොහැකි විය",
       farmName: "ගොවිපළ නම",
       farmNamePlaceholder: "උදා: උස් බිම් කුරුඳු ඉඩම",
       boundaryDrawn: "මායිම අඳින ලදී",
@@ -198,6 +206,10 @@ export const translations = {
 
     register: {
       title: "பண்ணையை பதிவு செய்யவும்",
+      locateMe: "எனது இருப்பிடத்திற்குச் செல்லவும்",
+      youAreHere: "நீங்கள் இங்கே இருக்கிறீர்கள்",
+      locationDenied: "இருப்பிட அனுமதி மறுக்கப்பட்டது",
+      locationFailed: "உங்கள் இருப்பிடத்தைப் பெற முடியவில்லை",
       subtitle: "உங்கள் பண்ணை எல்லையை வரையவும்",
       checking: "உங்கள் பண்ணை நிலையை சரிபார்க்கிறது…",
       alreadyRegisteredTitle: "பண்ணை ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது",
