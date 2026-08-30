@@ -200,40 +200,58 @@ export default function Cinnamon() {
       <div className="fixed top-[-15%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-amber-300/10 blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-15%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-orange-300/10 blur-[150px] pointer-events-none" />
 
-      {/* ── HERO ── */}
-      <header className="pt-20 pb-10 flex flex-col items-start px-4 relative z-10 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center lg:items-start w-full">
-          <div className="flex w-full justify-between items-center mb-10">
-            <div className="flex gap-4">
+      {/* ── TOP NAVIGATION ── */}
+      <header
+        className="fixed top-0 left-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-amber-900/10 shadow-sm px-4 sm:px-8"
+      >
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between py-4">
+          <div className="flex items-center gap-2 font-serif text-lg tracking-wide text-amber-950 font-medium">
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
+            Cinnamon <span className="text-amber-700">· Grading</span>
+          </div>
+
+          <nav className="flex items-center gap-3 overflow-x-auto">
+            <button
+              onClick={() => navigate("/cinnamon")}
+              className="whitespace-nowrap px-5 py-2 rounded-full bg-white/60 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-white hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
+            >
+              Detection
+            </button>
+
+            <button
+              onClick={() => navigate("/cinnamon/history")}
+              className="whitespace-nowrap px-5 py-2 rounded-full bg-white/60 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-white hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
+            >
+              History
+            </button>
+
+            {localStorage.getItem("cinnamonRole") === "admin" && (
               <button
-                onClick={() => navigate("/cinnamon/history")}
-                className="px-6 py-2.5 rounded-full bg-white/70 backdrop-blur-md border border-amber-900/10 text-amber-900 font-medium hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300"
+                onClick={() => navigate("/cinnamon/admin")}
+                className="whitespace-nowrap px-5 py-2 rounded-full bg-amber-900/5 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-amber-900/10 hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
               >
-                History
+                Admin Dashboard
               </button>
-              {localStorage.getItem("cinnamonRole") === "admin" && (
-                <button
-                  onClick={() => navigate("/cinnamon/admin")}
-                  className="px-6 py-2.5 rounded-full bg-amber-900/5 backdrop-blur-md border border-amber-900/10 text-amber-900 font-medium hover:bg-amber-900/10 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300"
-                >
-                  Admin Dashboard
-                </button>
-              )}
-            </div>
+            )}
+
             <button
               onClick={handleLogout}
-              className="fixed top-8 right-8 z-50 px-6 py-2.5 rounded-full bg-red-50/80 text-red-600 font-semibold border border-red-200 hover:bg-red-500 hover:text-white hover:shadow-[0_8px_30px_rgba(239,68,68,0.3)] hover:-translate-y-0.5 transition-all duration-300 backdrop-blur-md"
+              className="whitespace-nowrap px-5 py-2 rounded-full bg-red-50/80 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-500 hover:text-white hover:shadow-[0_4px_12px_rgba(239,68,68,0.2)] transition-all duration-300 ml-1"
             >
               Logout
             </button>
-          </div>
-          
-          
+          </nav>
+        </div>
+      </header>
+
+      {/* ── HERO ── */}
+      <section className="pt-28 pb-10 flex flex-col items-start px-4 relative z-10 max-w-7xl mx-auto">
+        <div className="flex flex-col items-center lg:items-start w-full">
           <h1 className="font-serif text-[clamp(40px,7vw,80px)] font-medium text-slate-800 tracking-tight leading-[1.1] mb-6 text-center lg:text-left w-full drop-shadow-sm">
             Cinnamon <em className="italic bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-orange-500 to-amber-700 pr-2">Grade</em><br/>Identification
           </h1>
         </div>
-      </header>
+      </section>
 
       {/* ── UPLOAD ── */}
       <section className="py-10 px-4 relative z-10 max-w-7xl mx-auto">

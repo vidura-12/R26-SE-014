@@ -1,6 +1,59 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+function TopNav({ navigate }) {
+  function handleLogout() {
+    localStorage.removeItem("cinnamonToken");
+    localStorage.removeItem("cinnamonRole");
+    localStorage.removeItem("cinnamonUserId");
+    localStorage.removeItem("cinnamonUserName");
+    window.location.href = "/cinnamon/login";
+  }
+
+  return (
+    <header className="fixed top-0 left-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-amber-900/10 shadow-sm px-4 sm:px-8">
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between py-4">
+        <div className="flex items-center gap-2 font-serif text-lg tracking-wide text-amber-950 font-medium">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
+          Cinnamon <span className="text-amber-700">· Grading</span>
+        </div>
+
+        <nav className="flex items-center gap-3 overflow-x-auto">
+          <button
+            onClick={() => navigate("/cinnamon")}
+            className="whitespace-nowrap px-5 py-2 rounded-full bg-white/60 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-white hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
+          >
+            Detection
+          </button>
+
+          <button
+            onClick={() => navigate("/cinnamon/history")}
+            className="whitespace-nowrap px-5 py-2 rounded-full bg-white/60 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-white hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
+          >
+            History
+          </button>
+
+          {localStorage.getItem("cinnamonRole") === "admin" && (
+            <button
+              onClick={() => navigate("/cinnamon/admin")}
+              className="whitespace-nowrap px-5 py-2 rounded-full bg-amber-900/5 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-amber-900/10 hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
+            >
+              Admin Dashboard
+            </button>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="whitespace-nowrap px-5 py-2 rounded-full bg-red-50/80 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-500 hover:text-white hover:shadow-[0_4px_12px_rgba(239,68,68,0.2)] transition-all duration-300 ml-1"
+          >
+            Logout
+          </button>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
 export default function Admin() {
   const [tab, setTab] = useState("dashboard");
   const [detections, setDetections] = useState([]);
@@ -158,33 +211,18 @@ const fetchDetections = async () => {
 
   return (
     <div className="min-h-screen bg-[#faf9f6] font-sans selection:bg-amber-200 selection:text-amber-900 relative overflow-hidden pb-20">
+      <TopNav navigate={navigate} />
       {/* Decorative Background */}
       <div className="fixed top-[-10%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-amber-300/10 blur-[120px] pointer-events-none" />
       <div className="fixed top-[20%] left-[-10%] w-[30vw] h-[30vw] rounded-full bg-orange-300/10 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 pt-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 pt-28 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <div className="inline-flex items-center gap-3 font-mono text-[10px] tracking-[0.25em] uppercase text-amber-700 bg-amber-100/50 px-4 py-1.5 rounded-full mb-4 border border-amber-200/50">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              Control Center
-            </div>
             <h1 className="font-serif text-4xl md:text-5xl font-medium text-slate-800 tracking-tight leading-tight">
               Admin Dashboard
             </h1>
           </div>
-          <button
-            onClick={() => navigate("/cinnamon")}
-            className="group relative inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-slate-900 text-white text-sm font-medium rounded-full cursor-pointer transition-all duration-300 hover:shadow-[0_12px_30px_rgba(15,23,42,0.2)] hover:-translate-y-1 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-            <span className="relative flex items-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7" />
-              </svg>
-              Back to Detection
-            </span>
-          </button>
         </div>
 
         {/* Tab Navigation */}
