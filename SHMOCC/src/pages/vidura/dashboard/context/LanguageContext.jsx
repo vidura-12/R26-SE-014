@@ -29,10 +29,10 @@ export function LanguageProvider({ children }) {
   };
 
   return (
-    <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage, t }}>
+    {children}
+  </LanguageContext.Provider>
+);
 }
 
 export function useLanguage() {
