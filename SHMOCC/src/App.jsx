@@ -26,10 +26,10 @@ import History from "./pages/Nimesha/History";
 import Admin from "./pages/Nimesha/Admin";
 
 // Uthara's part (disease prediction)
-import Landing from "./pages/Landing";
-import SignUp from "./pages/SignUp";
-import LoginUthara from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
+import Landing from "./pages/Uthara/Landing";
+import SignUp from "./pages/Uthara/Signup";
+import LoginUthara from "./pages/Uthara/Login";
+import ForgotPassword from "./pages/Uthara/ForgotPassword";
 import Advisory from "./pages/dashboard/Advisory";
 import DashboardLayoutUthara from "./pages/dashboard/DashboardLayout";
 import Overview from "./pages/dashboard/Overview";
@@ -141,7 +141,7 @@ export default function App() {
             />
 
             {/* Uthara — disease prediction */}
-            <Route path="/disease-prediction" element={<Landing />} />
+            <Route path="/disease-prediction/home" element={<Landing />} />
             <Route path="/disease-prediction/signup" element={<SignUp />} />
             <Route path="/disease-prediction/login" element={<LoginUthara />} />
             <Route path="/disease-prediction/forgot-password" element={<ForgotPassword />} />

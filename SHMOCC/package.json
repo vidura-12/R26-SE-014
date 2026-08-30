@@ -13,6 +13,7 @@
     "@turf/turf": "^7.3.4",
     "axios": "^1.13.6",
     "convex-hull": "^1.0.3",
+    "firebase": "^12.18.0",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
     "leaflet.heat": "^0.2.0",
