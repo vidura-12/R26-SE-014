@@ -1,104 +1,138 @@
+from pathlib import Path
+
 import joblib
 import pandas as pd
 
+
 # ============================================================
-# LOAD MODEL, ENCODER, AND FEATURE COLUMNS (loaded once at import time)
+# BASE DIRECTORY
 # ============================================================
-model = joblib.load("models/xgboost_model.pkl")
-encoder = joblib.load("models/label_encoder.pkl")
-feature_cols = joblib.load("models/feature_columns.pkl")
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def build_full_features(
-    ph,
-    moisture,
-    temp,
-    rainfall=180,
-    sunlight=7.5,
-    age=8,
-    growth_rate=3.5,
-    bark_yield=275,
-):
+# ============================================================
+# MODEL FILE PATHS
+# ============================================================
+
+MODEL_PATH = BASE_DIR / "models" / "xgboost_model.pkl"
+ENCODER_PATH = BASE_DIR / "models" / "label_encoder.pkl"
+FEATURE_COLUMNS_PATH = BASE_DIR / "models" / "feature_columns.pkl"
+
+
+# ============================================================
+# CHECK REQUIRED FILES
+# ============================================================
+
+if not MODEL_PATH.exists():
+    raise FileNotFoundError(f"XGBoost model not found: {MODEL_PATH}")
+
+if not ENCODER_PATH.exists():
+    raise FileNotFoundError(f"Label encoder not found: {ENCODER_PATH}")
+
+if not FEATURE_COLUMNS_PATH.exists():
+    raise FileNotFoundError(f"Feature columns file not found: {FEATURE_COLUMNS_PATH}")
+
+
+# ============================================================
+# LOAD MODEL, ENCODER, AND FEATURE COLUMNS
+# ============================================================
+
+model = joblib.load(MODEL_PATH)
+encoder = joblib.load(ENCODER_PATH)
+feature_cols = joblib.load(FEATURE_COLUMNS_PATH)
+
+
+# ============================================================
+# BUILD FULL FEATURE VECTOR (sensor-only: pH, moisture, temp)
+# ============================================================
+
+def build_full_features(ph, moisture, temp):
     """
-    Build the full feature vector from sensor inputs + defaults.
-    In production, pass all 8 values from your IoT sensors if available.
+    Build the feature vector required by the trained XGBoost model.
+
+    The model is trained using ONLY features derivable from the three
+    real IoT sensor readings — pH, soil moisture, and soil temperature.
+    This must stay in exact sync with the feature engineering in
+    train_model.py, or predictions will be wrong.
     """
+
     data = {
         "Soil_pH": ph,
         "Soil_Moisture_VWC_%": moisture,
         "Soil_Temp_C": temp,
-        "Rainfall_mm_month": rainfall,
-        "Sunlight_hrs_day": sunlight,
-        "Plant_Age_years": age,
-        "Growth_Rate_cm_month": growth_rate,
-        "Annual_Bark_Yield_g_plant": bark_yield,
-        "Moisture_stress": 1 if (moisture < 22 or moisture > 38) else 0,
-        "Temp_stress": 1 if temp > 30 else 0,
+
+        "Moisture_stress": (
+            1 if (moisture < 22 or moisture > 38) else 0
+        ),
+        "Temp_stress": (
+            1 if temp > 30 else 0
+        ),
         "Combined_stress_score": (
             (1 if (moisture < 22 or moisture > 38) else 0)
             + (1 if temp > 30 else 0)
             + (1 if ph < 5.0 else 0)
         ),
-        "Yield_per_age": bark_yield / age,
-        "Growth_efficiency": growth_rate / age,
     }
 
     df_temp = pd.DataFrame([data])
 
-    # Categorical bucketing
+    # ── pH CATEGORY ──
     df_temp["pH_category"] = pd.cut(
         df_temp["Soil_pH"],
         bins=[0, 5.0, 6.5, 14],
         labels=["Acidic", "Optimal_pH", "Alkaline"],
     )
-    df_temp["Rainfall_category"] = pd.cut(
-        df_temp["Rainfall_mm_month"],
-        bins=[0, 100, 200, 300, 500],
-        labels=["Low", "Medium", "High", "Very_High"],
-    )
-    df_temp["Age_group"] = pd.cut(
-        df_temp["Plant_Age_years"],
-        bins=[0, 3, 8, 12, 20],
-        labels=["Young", "Mature", "Old", "Very_Old"],
-    )
-    df_temp = pd.get_dummies(
-        df_temp, columns=["pH_category", "Rainfall_category", "Age_group"]
-    )
 
-    # Align with training columns (fill any missing dummy columns with 0)
+    df_temp = pd.get_dummies(df_temp, columns=["pH_category"])
+
+    # ── ALIGN WITH TRAINING FEATURES ──
     for col in feature_cols:
         if col not in df_temp.columns:
             df_temp[col] = 0
 
-    return df_temp[feature_cols]
+    df_temp = df_temp[feature_cols]
+
+    return df_temp
 
 
-def predict_risk(
-    ph,
-    moisture,
-    temp,
-    rainfall=180,
-    sunlight=7.5,
-    age=8,
-    growth_rate=3.5,
-    bark_yield=275,
-):
+# ============================================================
+# PREDICT RISK
+# ============================================================
+
+def predict_risk(ph, moisture, temp):
     """
-    Predict Wood/Root Rot risk from sensor readings.
-    Returns: {level, confidence, probabilities}
+    Predict White Root Rot risk from sensor readings.
+
+    Parameters
+    ----------
+    ph : float
+        Soil pH.
+    moisture : float
+        Soil moisture VWC percentage.
+    temp : float
+        Soil temperature in Celsius.
+
+    Returns
+    -------
+    dict
+        {
+            "level": prediction label,
+            "confidence": confidence percentage,
+            "probabilities": probability for each class
+        }
     """
-    X = build_full_features(
-        ph, moisture, temp, rainfall, sunlight, age, growth_rate, bark_yield
-    )
+
+    X = build_full_features(ph=ph, moisture=moisture, temp=temp)
 
     prediction = model.predict(X)
     proba = model.predict_proba(X)[0]
-
     label = encoder.inverse_transform(prediction)
+
     confidence = int(round(max(proba) * 100))
 
     probs = {
-        encoder.classes_[i]: round(float(p), 3) for i, p in enumerate(proba)
+        encoder.classes_[i]: round(float(p), 3)
+        for i, p in enumerate(proba)
     }
 
     return {
