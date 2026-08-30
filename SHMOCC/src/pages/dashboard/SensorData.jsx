@@ -15,7 +15,7 @@ import { addPredictionRecord } from "./predictionHistoryStore";
 // ============================================================
 // API CONFIG
 // ============================================================
-const PREDICT_API_URL = "http://localhost:8000/predict";
+const PREDICT_API_URL = "https://wrr-backend.thankfultree-9347156a.southeastasia.azurecontainerapps.io/predict";
 
 // ============================================================
 // RISK STYLES

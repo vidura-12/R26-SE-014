@@ -7,7 +7,7 @@ import { ref, onValue } from "firebase/database";
 import { db, rtdb } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 
-const API_URL = "http://localhost:8000";
+const API_URL = "https://wrr-backend.thankfultree-9347156a.southeastasia.azurecontainerapps.io";
 
 // ── score is removed from here — it comes from the model now ──
 const RISK_CONFIG = {
