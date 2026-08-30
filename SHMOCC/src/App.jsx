@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ThemeProvider from "./context/ThemeProvider";
+import { AuthProvider } from "./context/AuthContext";
+import PrivateRouteUthara from "./components/PrivateRoute";
 
 // Shared entry point (common across team members)
 import Mainpage from "./pages/Home/mainpage";
@@ -16,11 +19,23 @@ import Farmhistory from "./pages/vidura/dashboard/Farmhistory";
 import FarmRegister from "./pages/vidura/dashboard/Fields";
 import FarmForecast from "./pages/vidura/dashboard/FarmForecast";
 
-///Nimesha's part 
+// Nimesha's part
 import Cinnamon from "./pages/Nimesha/Cinnamon";
 import GradeMarketAuth from "./pages/Nimesha/GradeMarketAuth";
 import History from "./pages/Nimesha/History";
 import Admin from "./pages/Nimesha/Admin";
+
+// Uthara's part (disease prediction)
+import Landing from "./pages/Landing";
+import SignUp from "./pages/SignUp";
+import LoginUthara from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import Advisory from "./pages/dashboard/Advisory";
+import DashboardLayoutUthara from "./pages/dashboard/DashboardLayout";
+import Overview from "./pages/dashboard/Overview";
+import Devices from "./pages/dashboard/Devices";
+import HistoryUthara from "./pages/dashboard/History";
+import SensorData from "./pages/dashboard/SensorData";
 
 const TOKEN_KEY = "token_vidura";
 const DASHBOARD_PATH = "/plantation-health/dashboard";
@@ -38,102 +53,119 @@ function PublicRouteVidura({ children }) {
   return token ? <Navigate to={DASHBOARD_PATH} replace /> : children;
 }
 
-//cinnamon auth 
+// cinnamon auth
 function CinnamonPrivateRoute({ children }) {
   const token = localStorage.getItem("cinnamonToken");
-
   return token ? children : <Navigate to="/cinnamon/login" replace />;
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Mainpage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Mainpage />} />
 
-        {/* Vidura public routes */}
-        <Route
-          path="/plantation-health/login"
-          element={
-            <PublicRouteVidura>
-              <Login />
-            </PublicRouteVidura>
-          }
-        />
-        <Route
-          path="/plantation-health/signup"
-          element={
-            <PublicRouteVidura>
-              <Signup />
-            </PublicRouteVidura>
-          }
-        />
+            {/* Vidura public routes */}
+            <Route
+              path="/plantation-health/login"
+              element={
+                <PublicRouteVidura>
+                  <Login />
+                </PublicRouteVidura>
+              }
+            />
+            <Route
+              path="/plantation-health/signup"
+              element={
+                <PublicRouteVidura>
+                  <Signup />
+                </PublicRouteVidura>
+              }
+            />
 
-        {/* Vidura dashboard */}
-        <Route
-          path={DASHBOARD_PATH}
-          element={
-            <PrivateRouteVidura>
-              <DashboardLayout />
-            </PrivateRouteVidura>
-          }
-        >
-          <Route index element={<FarmRegister />} />
-          <Route path="fields/register" element={<FarmRegister />} />
-          <Route path="fields/farm" element={<FarmMap />} />
-          <Route path="map" element={<Map />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="farmhistory" element={<Farmhistory />} />
-          <Route path="FarmForecast" element={<FarmForecast />} />
-        </Route>
+            {/* Vidura dashboard */}
+            <Route
+              path={DASHBOARD_PATH}
+              element={
+                <PrivateRouteVidura>
+                  <DashboardLayout />
+                </PrivateRouteVidura>
+              }
+            >
+              <Route index element={<FarmRegister />} />
+              <Route path="fields/register" element={<FarmRegister />} />
+              <Route path="fields/farm" element={<FarmMap />} />
+              <Route path="map" element={<Map />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="farmhistory" element={<Farmhistory />} />
+              <Route path="FarmForecast" element={<FarmForecast />} />
+            </Route>
 
-        {/* Cinnamon auth */}
-        <Route
-          path="/cinnamon/login"
-          element={
-            localStorage.getItem("cinnamonToken") ? (
-              <Navigate to="/cinnamon" replace />
-            ) : (
-              <GradeMarketAuth />
-            )
-          }
-        />
+            {/* Cinnamon auth */}
+            <Route
+              path="/cinnamon/login"
+              element={
+                localStorage.getItem("cinnamonToken") ? (
+                  <Navigate to="/cinnamon" replace />
+                ) : (
+                  <GradeMarketAuth />
+                )
+              }
+            />
+            <Route
+              path="/cinnamon"
+              element={
+                <CinnamonPrivateRoute>
+                  <Cinnamon />
+                </CinnamonPrivateRoute>
+              }
+            />
+            <Route
+              path="/cinnamon/history"
+              element={
+                <CinnamonPrivateRoute>
+                  <History />
+                </CinnamonPrivateRoute>
+              }
+            />
+            <Route
+              path="/cinnamon/admin"
+              element={
+                <CinnamonPrivateRoute>
+                  <Admin />
+                </CinnamonPrivateRoute>
+              }
+            />
 
-        <Route
-          path="/cinnamon"
-          element={
-            <CinnamonPrivateRoute>
-              <Cinnamon />
-            </CinnamonPrivateRoute>
-          }
-        />
+            {/* Uthara — disease prediction */}
+            <Route path="/disease-prediction" element={<Landing />} />
+            <Route path="/disease-prediction/signup" element={<SignUp />} />
+            <Route path="/disease-prediction/login" element={<LoginUthara />} />
+            <Route path="/disease-prediction/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/disease-prediction/dashboard"
+              element={
+                <PrivateRouteUthara>
+                  <DashboardLayoutUthara />
+                </PrivateRouteUthara>
+              }
+            >
+              <Route index element={<Overview />} />
+              <Route path="devices" element={<Devices />} />
+              <Route path="history" element={<HistoryUthara />} />
+              <Route path="sensor-data" element={<SensorData />} />
+              <Route path="advisory" element={<Advisory />} />
+            </Route>
 
-        <Route
-          path="/cinnamon/history"
-          element={
-            <CinnamonPrivateRoute>
-              <History />
-            </CinnamonPrivateRoute>
-          }
-        />
-
-        <Route
-          path="/cinnamon/admin"
-          element={
-            <CinnamonPrivateRoute>
-              <Admin />
-            </CinnamonPrivateRoute>
-          }
-        />
-
-        {/* Catch unknown URLs */}
-        <Route
-          path="*"
-          element={<Navigate to="/plantation-health/login" replace />}
-        />
-      </Routes>
-    </BrowserRouter>
+            {/* Catch unknown URLs */}
+            <Route path="*" element={<Navigate to="/plantation-health/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
