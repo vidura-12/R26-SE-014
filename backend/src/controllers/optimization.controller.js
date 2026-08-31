@@ -2,7 +2,7 @@ const Schedule = require('../models/Schedule');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/apiError');
 const { runOptimization, buildOptimizationPayload } = require('../services/optimizer.service');
-const { notifyScheduleAssigned, notifyAllAdmins } = require('../services/notification.service');
+const { notifyOptimizationComplete } = require('../services/notification.service');
 
 exports.previewPayload = asyncHandler(async (req, res) => {
   const weekStartDate = new Date(req.body.weekStartDate);
@@ -18,16 +18,7 @@ exports.runOptimization = asyncHandler(async (req, res) => {
   const schedule = await runOptimization({ weekStartDate, weekEndDate, createdBy: req.user?._id });
 
   try {
-    const populated = await Schedule.findById(schedule._id).populate('assignments.peelerGroup');
-    const peelerUserIds = (populated.assignments ?? []).map(a => a.peelerGroup?.user).filter(Boolean);
-    if (peelerUserIds.length > 0) await notifyScheduleAssigned({ schedule, recipientUserIds: peelerUserIds });
-    await notifyAllAdmins({
-      title: 'Optimization Complete',
-      message: `A new harvest schedule has been generated with ${populated.assignments?.length ?? 0} peeler routes.`,
-      type: 'SCHEDULE_ASSIGNED',
-      link: '/admin/schedules',
-      meta: { scheduleId: schedule._id }
-    });
+    await notifyOptimizationComplete({ schedule });
   } catch (_) {}
 
   res.status(201).json({ success: true, data: schedule });

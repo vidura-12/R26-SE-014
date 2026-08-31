@@ -16,16 +16,16 @@ function ConfirmModal({ onConfirm, onCancel }) {
               <ExclamationTriangleIcon className="h-6 w-6 text-amber-500" />
             </div>
             <div>
-              <h3 className="font-display font-bold text-gray-900 text-lg mb-1">Run Optimizer?</h3>
+              <h3 className="font-display font-bold text-gray-900 text-lg mb-1">Manual Re-Optimize?</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                This will create a new schedule and mark matching harvest requests as <span className="font-semibold text-gray-700">SCHEDULED</span>.
+                Optimization normally runs automatically when harvest requests or peeler groups change. This will force a new schedule now and mark matching harvest requests as <span className="font-semibold text-gray-700">SCHEDULED</span>.
               </p>
             </div>
             <div className="flex flex-col-reverse sm:flex-row gap-3 w-full pt-1">
               <button className="btn-secondary flex-1" onClick={onCancel}>Cancel</button>
               <button className="btn-primary flex-1 flex items-center justify-center gap-2 whitespace-nowrap" onClick={onConfirm}>
                 <PlayIcon className="h-4 w-4" />
-                Run Optimizer
+                Manual Re-Optimize
               </button>
             </div>
           </div>
@@ -149,9 +149,14 @@ export default function Optimization() {
             disabled={loadingRun}
           >
             {loadingRun ? <Spinner size="sm" /> : <PlayIcon className="h-4 w-4" />}
-            {loadingRun ? 'Optimizing…' : 'Run Optimizer'}
+            {loadingRun ? 'Optimizing…' : 'Manual Re-Optimize'}
           </button>
         </div>
+
+        <p className="mt-4 flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
+          <InformationCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5 text-gray-400" />
+          Optimization runs automatically in the background whenever a harvest request is created or updated, or a peeler group changes its availability, capacity, location or group size. Use Manual Re-Optimize as a fallback to force a run for a specific week.
+        </p>
       </div>
 
       {/* Algorithm info */}

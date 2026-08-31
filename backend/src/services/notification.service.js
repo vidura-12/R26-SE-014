@@ -54,4 +54,18 @@ async function notifyScheduleAssigned({ schedule, recipientUserIds }) {
   ));
 }
 
-module.exports = { createNotification, notifyAllAdmins, notifyHarvestStatusChange, notifyHarvestCreated, notifyScheduleAssigned };
+async function notifyOptimizationComplete({ schedule }) {
+  const Schedule = require('../models/Schedule');
+  const populated = await Schedule.findById(schedule._id).populate('assignments.peelerGroup');
+  const peelerUserIds = (populated?.assignments ?? []).map(a => a.peelerGroup?.user).filter(Boolean);
+  if (peelerUserIds.length > 0) await notifyScheduleAssigned({ schedule, recipientUserIds: peelerUserIds });
+  await notifyAllAdmins({
+    title: 'Optimization Complete',
+    message: `A new harvest schedule has been generated with ${populated?.assignments?.length ?? 0} peeler routes.`,
+    type: 'SCHEDULE_ASSIGNED',
+    link: '/admin/schedules',
+    meta: { scheduleId: schedule._id }
+  });
+}
+
+module.exports = { createNotification, notifyAllAdmins, notifyHarvestStatusChange, notifyHarvestCreated, notifyScheduleAssigned, notifyOptimizationComplete };

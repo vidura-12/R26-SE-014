@@ -3,7 +3,7 @@ import { harvestApi } from '../../api'
 import StatusBadge from '../../components/StatusBadge'
 import Spinner from '../../components/Spinner'
 import { toast } from 'sonner'
-import { PlusIcon, MapPinIcon, TrashIcon, PencilIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, MapPinIcon, TrashIcon, PencilIcon, CalendarDaysIcon, UsersIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
 import { PinMap } from '../../components/Map'
 import LocationPicker from '../../components/LocationPicker'
@@ -247,6 +247,14 @@ export default function FarmerHarvestRequests() {
                     <StatusBadge status={h.processingCategory} />
                   </div>
                 </div>
+
+                {/* Assigned peeler group */}
+                {h.assignedPeeler?.groupName && (
+                  <div className="flex items-center gap-1.5 text-xs bg-forest-50 text-forest-700 rounded-xl px-3 py-2">
+                    <UsersIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>Assigned to: <span className="font-semibold">{h.assignedPeeler.groupName}</span></span>
+                  </div>
+                )}
 
                 {/* Stat blocks */}
                 <div className="grid grid-cols-3 gap-2">

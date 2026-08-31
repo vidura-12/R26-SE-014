@@ -1,9 +1,46 @@
 const HarvestRequest = require('../models/HarvestRequest');
 const Farmer = require('../models/Farmer');
+const Schedule = require('../models/Schedule');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/apiError');
 const { USER_ROLES } = require('../constants/enums');
 const { notifyHarvestCreated, notifyHarvestStatusChange, notifyAllAdmins } = require('../services/notification.service');
+const { triggerAutoOptimize } = require('../services/autoOptimize.service');
+
+/**
+ * Enrich harvest request objects with the peeler group they were assigned to by
+ * the optimizer (from the most recent Schedule that routes to them). Mutates and
+ * returns the given plain objects; each gets an `assignedPeeler` field (or null).
+ */
+async function attachAssignedPeeler(requests) {
+  const list = Array.isArray(requests) ? requests : [requests];
+  const ids = list.map((r) => r._id).filter(Boolean);
+  if (!ids.length) return requests;
+
+  const schedules = await Schedule.find({ 'assignments.route.harvestRequest': { $in: ids } })
+    .populate('assignments.peelerGroup', 'groupName leaderName')
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const byRequest = new Map();
+  for (const schedule of schedules) {
+    for (const assignment of schedule.assignments || []) {
+      for (const stop of assignment.route || []) {
+        const key = String(stop.harvestRequest);
+        if (byRequest.has(key)) continue; // schedules are newest-first, keep the latest
+        byRequest.set(key, {
+          groupName: assignment.peelerGroup?.groupName || null,
+          leaderName: assignment.peelerGroup?.leaderName || null,
+          estimatedArrival: stop.estimatedArrival || null,
+          scheduleId: schedule._id
+        });
+      }
+    }
+  }
+
+  for (const req of list) req.assignedPeeler = byRequest.get(String(req._id)) || null;
+  return requests;
+}
 
 exports.createHarvestRequest = asyncHandler(async (req, res) => {
   let farmerId = req.body.farmer;
@@ -24,6 +61,14 @@ exports.createHarvestRequest = asyncHandler(async (req, res) => {
   // Notify all admins about new harvest request
   notifyHarvestCreated(data).catch(() => {});
 
+  // Auto re-optimize over this request's harvest-ready / deadline window
+  triggerAutoOptimize({
+    weekStartDate: data.harvestReadyDate,
+    weekEndDate: data.deadlineDate,
+    reason: 'harvest-created',
+    createdBy: req.user._id
+  });
+
   res.status(201).json({ success: true, data });
 });
 
@@ -42,15 +87,17 @@ exports.getHarvestRequests = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1)
   const limit = req.query.limit ? Math.min(100, Math.max(1, parseInt(req.query.limit))) : 0
   const total = await HarvestRequest.countDocuments(filter)
-  const query = HarvestRequest.find(filter).populate('farmer').sort({ createdAt: -1 })
+  const query = HarvestRequest.find(filter).populate('farmer').sort({ createdAt: -1 }).lean()
   if (limit) query.skip((page - 1) * limit).limit(limit)
   const data = await query
+  await attachAssignedPeeler(data)
   res.json({ success: true, count: data.length, total, page, data });
 });
 
 exports.getHarvestRequestById = asyncHandler(async (req, res) => {
-  const data = await HarvestRequest.findById(req.params.id).populate('farmer');
+  const data = await HarvestRequest.findById(req.params.id).populate('farmer').lean();
   if (!data) throw new ApiError(404, 'Harvest request not found');
+  await attachAssignedPeeler(data);
   res.json({ success: true, data });
 });
 
@@ -61,6 +108,15 @@ exports.updateHarvestRequest = asyncHandler(async (req, res) => {
 
   const data = await HarvestRequest.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   if (!data) throw new ApiError(404, 'Harvest request not found');
+
+  // Auto re-optimize over the (possibly updated) harvest-ready / deadline window
+  triggerAutoOptimize({
+    weekStartDate: data.harvestReadyDate,
+    weekEndDate: data.deadlineDate,
+    reason: 'harvest-updated',
+    createdBy: req.user._id
+  });
+
   res.json({ success: true, data });
 });
 

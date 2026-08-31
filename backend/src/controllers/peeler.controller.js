@@ -3,6 +3,8 @@ const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/apiError');
 const { USER_ROLES } = require('../constants/enums');
+const { triggerAutoOptimizeForNextDays } = require('../services/autoOptimize.service');
+const { touchesOptimization } = require('../utils/peelerOptimizeFields');
 
 exports.createPeelerGroup = asyncHandler(async (req, res) => {
   let userId = req.user._id;
@@ -27,6 +29,10 @@ exports.createPeelerGroup = asyncHandler(async (req, res) => {
 
   const { email: _e, password: _p, phone: _ph, ...rest } = req.body;
   const data = await PeelerGroup.create({ ...rest, user: userId });
+
+  // New group affects capacity/location/size — re-optimize the coming week
+  triggerAutoOptimizeForNextDays({ days: 7, reason: 'peeler-created', createdBy: req.user._id });
+
   res.status(201).json({ success: true, data });
 });
 
@@ -40,6 +46,11 @@ exports.updateMyGroup = asyncHandler(async (req, res) => {
   const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
   const data = await PeelerGroup.findOneAndUpdate({ user: req.user._id }, updates, { new: true, runValidators: true });
   if (!data) throw new ApiError(404, 'Peeler group not found');
+
+  if (touchesOptimization(updates)) {
+    triggerAutoOptimizeForNextDays({ days: 7, reason: 'peeler-updated', createdBy: req.user._id });
+  }
+
   res.json({ success: true, data });
 });
 
@@ -68,12 +79,20 @@ exports.getPeelerGroupById = asyncHandler(async (req, res) => {
 exports.updatePeelerGroup = asyncHandler(async (req, res) => {
   const data = await PeelerGroup.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   if (!data) throw new ApiError(404, 'Peeler group not found');
+
+  if (touchesOptimization(req.body)) {
+    triggerAutoOptimizeForNextDays({ days: 7, reason: 'peeler-updated', createdBy: req.user._id });
+  }
+
   res.json({ success: true, data });
 });
 
 exports.updateAvailability = asyncHandler(async (req, res) => {
   const data = await PeelerGroup.findByIdAndUpdate(req.params.id, { availability: req.body.availability }, { new: true, runValidators: true });
   if (!data) throw new ApiError(404, 'Peeler group not found');
+
+  triggerAutoOptimizeForNextDays({ days: 7, reason: 'peeler-availability', createdBy: req.user._id });
+
   res.json({ success: true, data });
 });
 
