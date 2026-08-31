@@ -17,7 +17,11 @@ function riskLabel(r, t) {
   if (r >= 30) return t("history.badgeModerate");
   return t("history.badgeHealthy");
 }
-
+function fmtDateOnly(d) {
+  if (!d) return "";
+  const date = typeof d === "string" ? new Date(d) : d;
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
 function fmtDate(d) {
   if (!d) return "";
   const s = typeof d === "string" ? d : d.toISOString?.();
@@ -140,7 +144,7 @@ function ForecastChart({ history, forecast, isDark }) {
         {data.filter((_, i) => i % Math.max(1, Math.ceil(data.length / 6)) === 0).map((d, i) => (
           <text key={i} x={xScale(d._sort)} y={height - 8} textAnchor="middle" fontSize={10}
             fill={isDark ? "#64748b" : "#94a3b8"}>
-            {fmtDate(d.date)}
+            {fmtDateOnly(d.date)}
           </text>
         ))}
 
@@ -281,7 +285,7 @@ export function FarmForecast() {
             </div>
             <div className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-semibold">
               {data?.snapshotDate
-                ? `${t("forecast.basedOn")} ${data.snapshotDate}`
+                ? `${t("forecast.basedOn")} ${fmtDateOnly(data.snapshotDate)}`
                 : t("forecast.subtitle")}
             </div>
           </div>
@@ -371,7 +375,7 @@ export function FarmForecast() {
                     <div key={row.horizonDays}
                       className="flex flex-col items-center gap-1 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-2.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700">
                       <div className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
-                        {row.forecastDate?.slice(5)}
+                        {row.forecastDate?.slice(5, 10)}
                       </div>
                       <div className="text-sm font-bold tabular-nums" style={{ color: col }}>
                         {row.predictedRisk.toFixed(0)}%
