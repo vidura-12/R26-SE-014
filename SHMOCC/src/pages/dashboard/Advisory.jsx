@@ -5,7 +5,7 @@ import { ref, onValue } from "firebase/database";
 import { useDashboard } from "./DashboardContext";
 import { rtdb } from "../../firebase";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://wrr-backend.thankfultree-9347156a.southeastasia.azurecontainerapps.io";
 
 // ─── Risk styling (semantic colors, with dark-mode variants) ────────────────
 // NOTE: Critical tier removed — backend now folds "Critical" into "High".
