@@ -47,12 +47,22 @@ function TopNav({ navigate }) {
   }
 
   return (
-    <header className="fixed top-0 left-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-amber-900/10 shadow-sm px-4 sm:px-8">
-      <div className="mx-auto flex max-w-[1280px] items-center justify-between py-4">
-        <div className="flex items-center gap-2 font-serif text-lg tracking-wide text-amber-950 font-medium">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
-          Cinnamon <span className="text-amber-700">· Grading</span>
+    <header className="fixed top-0 left-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-amber-900/10 shadow-sm px-4 sm:px-8">
+    <div className="w-full flex items-center justify-between py-4">
+     <div className="flex items-center gap-2">
+        <div className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#2d8a4e] to-[#1a5c2e] flex items-center justify-center text-[20px] shadow-[0_4px_14px_rgba(44,138,78,0.35)]">
+          🪵
         </div>
+
+        <div>
+          <div className="font-serif font-bold text-[18px] text-[#1a5c2e]">
+            Ceylon Cinnamon
+          </div>
+          <div className="text-[10px] text-[#5a8a6a] tracking-[0.15em] uppercase">
+            Grade Detection
+          </div>
+        </div>
+      </div>
 
         <nav className="flex items-center gap-3 overflow-x-auto">
           <button
@@ -173,7 +183,12 @@ export default function History() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf9f6] via-[#fffdfa] to-[#f5f0e6] font-sans selection:bg-amber-200 selection:text-amber-900 relative overflow-hidden">
+    <div
+  className="min-h-screen font-sans selection:bg-amber-200 selection:text-amber-900 relative overflow-hidden"
+  style={{
+    background: "linear-gradient(160deg,#fff 0%,#f2faf5 50%,#d4edde 100%)"
+  }}
+>
       <TopNav navigate={navigate} />
       
       {/* Decorative Background Elements */}

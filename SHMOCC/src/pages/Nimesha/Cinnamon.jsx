@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ScrollReveal } from "../../hooks/useScrollReveal.jsx";
+import { useTheme } from "../../context/ThemeProvider";
 import img1 from "../../assets/7.jpg";
 import img2 from "../../assets/2.jpg";
 import img3 from "../../assets/5.jpg";
@@ -53,6 +55,7 @@ function fmtBytes(b) {
 }
 
 export default function Cinnamon() {
+  const { isDark } = useTheme();
   const [image, setImage] = useState(null);
   const [drag, setDrag] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -194,83 +197,105 @@ export default function Cinnamon() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-[#faf9f6] via-[#fffdfa] to-[#f5f0e6] text-gray-800 font-sans overflow-x-hidden px-4 sm:px-8 relative selection:bg-amber-200 selection:text-amber-900">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(40px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes floatBlob {
+          0%,100% { transform: scale(1) translate(0,0); }
+          50% { transform: scale(1.08) translate(20px,-20px); }
+        }
+        .fade-up   { animation: fadeUp 0.8s 0.0s ease both; }
+        .fade-up-1 { animation: fadeUp 0.8s 0.15s ease both; }
+        .fade-up-2 { animation: fadeUp 0.8s 0.30s ease both; }
+        .fade-up-3 { animation: fadeUp 0.8s 0.50s ease both; }
+      `}</style>
       
-      {/* Decorative Background Elements */}
-      <div className="fixed top-[-15%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-amber-300/10 blur-[120px] pointer-events-none" />
-      <div className="fixed bottom-[-15%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-orange-300/10 blur-[150px] pointer-events-none" />
+      <div style={{
+        background: isDark ? "linear-gradient(160deg,#0a1f11 0%,#0e2a17 50%,#123a1d 100%)" : "linear-gradient(160deg,#fff 0%,#f2faf5 50%,#d4edde 100%)",
+        minHeight: "100vh",
+        color: isDark ? "#eafaf0" : "#0f2d1a",
+        overflowX: "hidden",
+        position: "relative",
+        transition: "background 0.3s, color 0.3s",
+      }}>
 
       {/* ── TOP NAVIGATION ── */}
-      <header
-        className="fixed top-0 left-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-amber-900/10 shadow-sm px-4 sm:px-8"
-      >
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between py-4">
-          <div className="flex items-center gap-2 font-serif text-lg tracking-wide text-amber-950 font-medium">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
-            Cinnamon <span className="text-amber-700">· Grading</span>
+      <header style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        padding: "16px 32px",
+        background: isDark ? "rgba(10,36,18,0.88)" : "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(16px)",
+        borderBottom: isDark ? "1px solid rgba(76,175,115,0.15)" : "1px solid rgba(44,138,78,0.12)",
+        boxShadow: isDark ? "0 4px 24px rgba(0,0,0,0.25)" : "0 2px 20px rgba(0,0,0,0.1)",
+        transition: "all 0.3s",
+      }}>
+        <div style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between"
+      }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: "linear-gradient(135deg,#2d8a4e,#1a5c2e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, boxShadow: "0 4px 14px rgba(44,138,78,0.35)" }}>🪵</div>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 18, color: isDark ? "#6fd695" : "#1a5c2e" }}>Ceylon Cinnamon</div>
+              <div style={{ fontSize: 10, color: isDark ? "#7fb695" : "#5a8a6a", letterSpacing: "0.15em", textTransform: "uppercase" }}>Grade Detection</div>
+            </div>
           </div>
 
-          <nav className="flex items-center gap-3 overflow-x-auto">
-            <button
-              onClick={() => navigate("/cinnamon")}
-              className="whitespace-nowrap px-5 py-2 rounded-full bg-white/60 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-white hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
-            >
-              Detection
-            </button>
-
-            <button
-              onClick={() => navigate("/cinnamon/history")}
-              className="whitespace-nowrap px-5 py-2 rounded-full bg-white/60 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-white hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
-            >
-              History
-            </button>
-
+          <nav style={{ display: "flex", gap: 16, alignItems: "center" }}>
+            <button onClick={() => navigate("/cinnamon")} style={{ fontSize: 14, fontWeight: 500, color: isDark ? "#cfe9d8" : "#2a5c3a", background: "none", border: "none", cursor: "pointer", padding: "8px 16px" }}>Detection</button>
+            <button onClick={() => navigate("/cinnamon/history")} style={{ fontSize: 14, fontWeight: 500, color: isDark ? "#cfe9d8" : "#2a5c3a", background: "none", border: "none", cursor: "pointer", padding: "8px 16px" }}>History</button>
             {localStorage.getItem("cinnamonRole") === "admin" && (
-              <button
-                onClick={() => navigate("/cinnamon/admin")}
-                className="whitespace-nowrap px-5 py-2 rounded-full bg-amber-900/5 border border-amber-900/10 text-amber-900 text-sm font-medium hover:bg-amber-900/10 hover:shadow-[0_4px_12px_rgb(0,0,0,0.05)] transition-all duration-300"
-              >
-                Admin Dashboard
-              </button>
+              <button onClick={() => navigate("/cinnamon/admin")} style={{ fontSize: 14, fontWeight: 500, color: isDark ? "#cfe9d8" : "#2a5c3a", background: "none", border: "none", cursor: "pointer", padding: "8px 16px" }}>Admin</button>
             )}
-
-            <button
-              onClick={handleLogout}
-              className="whitespace-nowrap px-5 py-2 rounded-full bg-red-50/80 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-500 hover:text-white hover:shadow-[0_4px_12px_rgba(239,68,68,0.2)] transition-all duration-300 ml-1"
-            >
-              Logout
-            </button>
+            <button onClick={handleLogout} style={{ fontSize: 14, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#d64545,#a03333)", border: "none", padding: "10px 24px", borderRadius: 99, cursor: "pointer", boxShadow: "0 4px 16px rgba(212,69,69,0.4)" }}>Logout</button>
           </nav>
         </div>
       </header>
 
       {/* ── HERO ── */}
-      <section className="pt-28 pb-10 flex flex-col items-start px-4 relative z-10 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center lg:items-start w-full">
-          <h1 className="font-serif text-[clamp(40px,7vw,80px)] font-medium text-slate-800 tracking-tight leading-[1.1] mb-6 text-center lg:text-left w-full drop-shadow-sm">
-            Cinnamon <em className="italic bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-orange-500 to-amber-700 pr-2">Grade</em><br/>Identification
-          </h1>
-        </div>
+      <section style={{ paddingTop: "120px" }} className="pb-10 flex flex-col items-start px-4 relative z-10 max-w-7xl mx-auto">
+        <ScrollReveal direction="left">
+          <div className="flex flex-col items-center lg:items-start w-full">
+            <h1 className="font-serif text-[clamp(40px,7vw,80px)] font-medium text-slate-800 tracking-tight leading-[1.1] mb-6 text-center lg:text-left w-full drop-shadow-sm">
+              Cinnamon <em className="italic bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-orange-500 to-amber-700 pr-2">Grade</em><br/>Identification
+            </h1>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* ── UPLOAD ── */}
       <section className="py-10 px-4 relative z-10 max-w-7xl mx-auto">
-        <p className="text-base text-gray-600/90 leading-relaxed mb-10 max-w-2xl text-center lg:text-left mx-auto lg:mx-0 font-light">
-          Upload a cinnamon image to instantly detect and classify its grade, quality tier, and origin using advanced visual analysis models.
-        </p>
+        <ScrollReveal direction="up">
+          <p className="text-base text-gray-600/90 leading-relaxed mb-10 max-w-2xl text-center lg:text-left mx-auto lg:mx-0 font-light">
+            Upload a cinnamon image to instantly detect and classify its grade, quality tier, and origin using advanced visual analysis models.
+          </p>
+        </ScrollReveal>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-stretch">
-          <div
-            className={`group relative rounded-3xl p-16 text-center cursor-pointer transition-all duration-300 outline-none overflow-hidden
-              ${drag ? "border-amber-400 bg-amber-50/80 scale-[1.02] shadow-xl" : "border-amber-200/60 bg-white/60 hover:bg-white/90 hover:border-amber-300 hover:shadow-[0_20px_40px_rgb(0,0,0,0.06)] hover:-translate-y-1"}
-              border-2 border-dashed backdrop-blur-xl`}
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-            onDragLeave={() => setDrag(false)}
-            onDrop={handleDrop}
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-          >
+        <ScrollReveal direction="up" delay={0.1}>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-stretch">
+            <div
+              className={`group relative rounded-3xl p-16 text-center cursor-pointer transition-all duration-300 outline-none overflow-hidden
+                ${drag ? "border-amber-400 bg-amber-50/80 scale-[1.02] shadow-xl" : "border-amber-200/60 bg-white/60 hover:bg-white/90 hover:border-amber-300 hover:shadow-[0_20px_40px_rgb(0,0,0,0.06)] hover:-translate-y-1"}
+                border-2 border-dashed backdrop-blur-xl`}
+              onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+              onDragLeave={() => setDrag(false)}
+              onDrop={handleDrop}
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+            >
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <input
               ref={inputRef}
@@ -349,7 +374,8 @@ export default function Cinnamon() {
               </div>
             )}
           </div>
-        </div>
+          </div>
+        </ScrollReveal>
 
         {/* Camera modal */}
         {showCamera && (
@@ -384,12 +410,13 @@ export default function Cinnamon() {
         )}
 
         {/* Analyze button */}
-        <div className="mt-10 flex justify-center lg:justify-start">
-          <button
-            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-base font-medium rounded-full cursor-pointer transition-all duration-300 hover:shadow-[0_12px_30px_rgba(245,158,11,0.3)] hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none overflow-hidden"
-            onClick={analyze}
-            disabled={!image || loading}
-          >
+        <ScrollReveal direction="up" delay={0.2}>
+          <div className="mt-10 flex justify-center lg:justify-start">
+            <button
+              className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-base font-medium rounded-full cursor-pointer transition-all duration-300 hover:shadow-[0_12px_30px_rgba(245,158,11,0.3)] hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none overflow-hidden"
+              onClick={analyze}
+              disabled={!image || loading}
+            >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
             <span className="relative flex items-center gap-3">
               {loading ? (
@@ -410,7 +437,8 @@ export default function Cinnamon() {
               )}
             </span>
           </button>
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* ── RESULT SECTION ── */}
@@ -432,13 +460,16 @@ export default function Cinnamon() {
 
         return (
           <section className="py-14 px-4 relative z-10 max-w-7xl mx-auto animate-fade-in">
-            <div className="flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase text-amber-800/50 mb-10">
-              Analysis Results
-              <div className="flex-1 h-px bg-gradient-to-r from-amber-200/50 to-transparent" />
-            </div>
+            <ScrollReveal direction="up">
+              <div className="flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase text-amber-800/50 mb-10">
+                Analysis Results
+                <div className="flex-1 h-px bg-gradient-to-r from-amber-200/50 to-transparent" />
+              </div>
+            </ScrollReveal>
 
             {/* Status banner */}
-            <div className={`relative overflow-hidden flex items-center justify-between p-6 rounded-2xl mb-10 shadow-sm border backdrop-blur-md ${isMixed ? "bg-orange-50/80 border-orange-200/60" : "bg-emerald-50/80 border-emerald-200/60"}`}>
+            <ScrollReveal direction="up" delay={0.1}>
+              <div className={`relative overflow-hidden flex items-center justify-between p-6 rounded-2xl mb-10 shadow-sm border backdrop-blur-md ${isMixed ? "bg-orange-50/80 border-orange-200/60" : "bg-emerald-50/80 border-emerald-200/60"}`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
               <div className="relative flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-inner ${isMixed ? "bg-orange-100 text-orange-500" : "bg-emerald-100 text-emerald-500"}`}>
@@ -457,6 +488,7 @@ export default function Cinnamon() {
                 {isSingleQuill ? "Single Quill" : isMixed ? "Mixed Bundle" : "Pure Bundle"}
               </span>
             </div>
+            </ScrollReveal>
 
             {/* Segmented tab control */}
             <div className="inline-flex flex-wrap gap-2 p-1.5 rounded-2xl border border-gray-200/60 bg-white/50 backdrop-blur-md shadow-sm mb-10">
@@ -482,7 +514,8 @@ export default function Cinnamon() {
             {resultTab === "grade" && (
               <div className="animate-fade-in">
                 {/* Top stat cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <ScrollReveal direction="up" delay={0.15}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                   <div className="p-8 bg-white/60 backdrop-blur-xl border border-white/80 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                     <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20 -translate-y-1/2 translate-x-1/2 transition-opacity duration-500 group-hover:opacity-40 ${colors.bg.replace('bg-', 'bg-')}`} />
                     <p className="font-mono text-xs tracking-widest uppercase text-gray-400 mb-4 font-semibold">Final Grade</p>
@@ -511,8 +544,7 @@ export default function Cinnamon() {
                       {finalGrade === "H2" && "Standard grade. Cost-effective for culinary, bulk, and industrial processing."}
                     </p>
                   </div>
-                </div>
-
+                </div>                </ScrollReveal>
                 {/* Distribution bar */}
                 {isMixed && (
                   <div className="mb-10 border border-white/80 rounded-3xl p-8 bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
@@ -699,18 +731,21 @@ export default function Cinnamon() {
       
       {/* ── CINNAMON IMAGES GALLERY ── */}
       <section className="py-16 px-4 relative z-10 max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase text-amber-800/50 mb-10">
-          Visual Reference
-          <div className="flex-1 h-px bg-gradient-to-r from-amber-200/50 to-transparent" />
-        </div>
+        <ScrollReveal direction="up">
+          <div className="flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase text-amber-800/50 mb-10">
+            Visual Reference
+            <div className="flex-1 h-px bg-gradient-to-r from-amber-200/50 to-transparent" />
+          </div>
+        </ScrollReveal>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { src: img2, label: "Ceylon Quills", desc: "Hand-rolled premium barks" },
             { src: img3, label: "Ground Spice", desc: "Fine culinary powder" },
             { src: img4, label: "Raw Sticks", desc: "Unprocessed harvest" },
-          ].map(({ src, label, desc }) => (
-            <div key={label} className="group relative overflow-hidden rounded-3xl shadow-md cursor-pointer">
+          ].map(({ src, label, desc }, index) => (
+            <ScrollReveal key={label} direction="up" delay={index * 0.1}>
+              <div className="group relative overflow-hidden rounded-3xl shadow-md cursor-pointer">
               <img
                 src={src}
                 alt={label}
@@ -722,6 +757,7 @@ export default function Cinnamon() {
                 <p className="font-mono text-[10px] tracking-widest uppercase text-amber-300/90">{desc}</p>
               </div>
             </div>
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -748,8 +784,9 @@ export default function Cinnamon() {
               body: "Images are processed in-session securely and are never permanently stored. We guarantee complete confidentiality for all your supply-chain samples.",
               icon: <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
             },
-          ].map(({ num, title, body, icon }) => (
-            <div key={num} className="bg-white/60 backdrop-blur-xl border border-white/80 p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
+          ].map(({ num, title, body, icon }, index) => (
+            <ScrollReveal key={num} direction="up" delay={index * 0.1}>
+              <div className="bg-white/60 backdrop-blur-xl border border-white/80 p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-200/50 transition-colors duration-500" />
               <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-50 text-amber-700 rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-amber-200/50">
                 {icon}
@@ -758,13 +795,15 @@ export default function Cinnamon() {
               <h3 className="font-serif text-2xl font-medium text-slate-800 tracking-tight mb-4">{title}</h3>
               <p className="text-[15px] leading-relaxed text-gray-600">{body}</p>
             </div>
+            </ScrollReveal>
           ))}
         </div>
       </section>
 
       {/* ── FULL-WIDTH IMAGE & KNOWLEDGE ── */}
       <section className="px-4 pb-20 relative z-10 max-w-7xl mx-auto">
-        <div className="relative overflow-hidden rounded-[2rem] shadow-xl mb-8 group">
+        <ScrollReveal direction="up">
+          <div className="relative overflow-hidden rounded-[2rem] shadow-xl mb-8 group">
           <img
             src={img1}
             alt="Cinnamon Sticks"
@@ -779,9 +818,11 @@ export default function Cinnamon() {
             <p className="text-white/80 max-w-2xl text-lg font-light leading-relaxed">Discover why True Ceylon Cinnamon remains the world's most sought-after spice for culinary and medicinal perfection.</p>
           </div>
         </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-transform">
+          <ScrollReveal direction="left" delay={0.1}>
+            <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-transform">
             <div className="flex items-center gap-4 mb-5">
               <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.315 48.315 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" /></svg>
@@ -790,8 +831,10 @@ export default function Cinnamon() {
             </div>
             <p className="text-gray-600 leading-relaxed text-[15px]">Ceylon cinnamon is prized for its delicate flavor, ultra-low coumarin content, and subtle sweetness. Native to Sri Lanka, it represents the absolute pinnacle of global spice cultivation.</p>
           </div>
+          </ScrollReveal>
           
-          <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-transform">
+          <ScrollReveal direction="right" delay={0.1}>
+            <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-transform">
             <div className="flex items-center gap-4 mb-5">
               <div className="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center">
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
@@ -799,10 +842,12 @@ export default function Cinnamon() {
               <h3 className="font-serif text-2xl font-medium text-slate-800">Wellness & Culinary</h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-[15px]">Beyond gourmet cuisine, it is rich in antioxidants with profound anti-inflammatory properties. An essential superfood embraced by both traditional medicine and modern gastronomy.</p>
-          </div>
+            </div>
+          </ScrollReveal>
         </div>
 
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-10 border border-amber-100/50 shadow-inner relative overflow-hidden">
+        <ScrollReveal direction="up">
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-10 border border-amber-100/50 shadow-inner relative overflow-hidden">
           <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-white/40 to-transparent pointer-events-none" />
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
             <div className="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center flex-shrink-0 text-amber-600">
@@ -815,18 +860,33 @@ export default function Cinnamon() {
               </p>
             </div>
           </div>
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="py-8 border-t border-amber-900/5 flex flex-col md:flex-row items-center justify-between font-mono text-[10px] tracking-widest uppercase text-gray-400 px-8 gap-4 relative z-10">
-        <span>Cinnamon Grade ID System</span>
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+      <footer style={{
+        borderTop: isDark ? "1px solid rgba(76,175,115,0.15)" : "1px solid rgba(44,138,78,0.12)",
+        padding: "32px 40px",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        fontFamily: "monospace",
+        fontSize: "10px",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        color: isDark ? "#7fb695" : "#5a8a6a",
+        gap: 32,
+      }}>
+        <span>Ceylon Cinnamon Grade System</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4caf73" }}></span>
           All Systems Operational
         </div>
-        <span>© 2025 Ceylon Spice</span>
+        <span>© 2025 Ceylon Cinnamon</span>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
