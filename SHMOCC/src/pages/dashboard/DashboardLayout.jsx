@@ -8,18 +8,18 @@ import { getTokens, DISTRICTS } from "./dashboardTheme";
 import { ThemeToggle } from "./DashboardComponents";
 
 const NAV_ITEMS = [
-  { id: "overview",    icon: "🏠", label: "Overview",    path: "/dashboard" },
-  { id: "devices",     icon: "📡", label: "Devices",     path: "/dashboard/devices" },
-  { id: "history",     icon: "📋", label: "History",     path: "/dashboard/history" },
-  { id: "sensor-data", icon: "📊", label: "Sensor Data", path: "/dashboard/sensor-data" },
-  { id: "advisory",    icon: "🛡️", label: "Advisory",    path: "/dashboard/advisory" },
+  { id: "overview",    icon: "🏠", label: "Overview",    path: "/disease-prediction/dashboard" },
+  { id: "devices",     icon: "📡", label: "Devices",     path: "/disease-prediction/dashboard/devices" },
+  { id: "history",     icon: "📋", label: "History",     path: "/disease-prediction/dashboard/history" },
+  { id: "sensor-data", icon: "📊", label: "Sensor Data", path: "/disease-prediction/dashboard/sensor-data" },
+  { id: "advisory",    icon: "🛡️", label: "Advisory",    path: "/disease-prediction/dashboard/advisory" },
 ];
 
 function getActiveTab(pathname) {
-  if (pathname.startsWith("/dashboard/devices")) return "devices";
-  if (pathname.startsWith("/dashboard/history")) return "history";
-  if (pathname.startsWith("/dashboard/sensor-data")) return "sensor-data";
-  if (pathname.startsWith("/dashboard/advisory")) return "advisory";
+  if (pathname.startsWith("/disease-prediction/dashboard/devices")) return "devices";
+  if (pathname.startsWith("/disease-prediction/dashboard/history")) return "history";
+  if (pathname.startsWith("/disease-prediction/dashboard/sensor-data")) return "sensor-data";
+  if (pathname.startsWith("/disease-prediction/dashboard/advisory")) return "advisory";
   return "overview";
 }
 
@@ -1098,9 +1098,9 @@ function DashboardShell() {
   const activeTab = getActiveTab(location.pathname);
 
   const handleSignOut = async () => {
-    await signOut(auth);
-    nav("/login");
-  };
+  await signOut(auth);
+  nav("/disease-prediction/login");
+};
 
   return (
     <>
