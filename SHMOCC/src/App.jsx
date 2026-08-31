@@ -160,8 +160,7 @@ export default function App() {
               <Route path="advisory" element={<Advisory />} />
             </Route>
 
-            {/* Catch unknown URLs */}
-            <Route path="*" element={<Navigate to="/plantation-health/login" replace />} />
+            
           </Routes>
         </BrowserRouter>
       </AuthProvider>

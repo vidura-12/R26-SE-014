@@ -197,7 +197,7 @@ export default function Login() {
       await login(form.email, form.password);
       setSuccess(true);
       setTimeout(() => {
-        nav("/dashboard");
+        nav("/disease-prediction/dashboard");
       }, 2000);
     } catch (err) {
       setLoginError("Incorrect email or password. Please try again.");
