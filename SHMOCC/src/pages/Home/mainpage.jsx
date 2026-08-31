@@ -739,6 +739,7 @@ export default function App() {
   const [active, setActive] = useState("home");
   const navigate = useNavigate();
   const activeComponent = COMPONENTS.find((c) => c.id === active);
+  const iframeRef = useRef(null);
 
   const handleNavigate = (id) => {
     if (EXTERNAL_ROUTES[id]) {
@@ -761,11 +762,28 @@ export default function App() {
 
       <TopNav active={active} onNavigate={handleNavigate} />
 
-      {active === "home" || !activeComponent ? (
-        <Home onNavigate={handleNavigate} />
-      ) : (
-        <ComponentPage component={activeComponent} onNavigate={handleNavigate} />
-      )}
+      {/* Team Scheduler workspace — the iframe stays mounted so its login
+          session survives navigation, and is just hidden when another
+          system is open. */}
+      <iframe
+        ref={iframeRef}
+        src="https://cinnamonsync.netlify.app/login"
+        style={{
+          width: "100%",
+          height: "calc(100vh - 80px)",
+          border: "none",
+          display: active === "labor" ? "block" : "none",
+          position: active === "labor" ? "relative" : "absolute",
+        }}
+        title="Peeler Dispatch Workspace"
+      />
+
+      {active !== "labor" &&
+        (active === "home" || !activeComponent ? (
+          <Home onNavigate={handleNavigate} />
+        ) : (
+          <ComponentPage component={activeComponent} onNavigate={handleNavigate} />
+        ))}
     </div>
   );
 }
