@@ -1,60 +1,221 @@
 // ============================================================
 // PREDICTION HISTORY STORE
 // ------------------------------------------------------------
-// Lightweight localStorage-backed store shared between the
-// Sensor Data page (writes a record after every prediction) and
-// the History page (reads + displays them). Dispatches a custom
-// event so any mounted components stay in sync within the same tab.
+// Firebase Realtime Database-backed store.
+//
+// Used by:
+//   - Sensor Data page -> saves prediction records
+//   - History page     -> reads and displays prediction records
+//
+// Firebase structure:
+//
+// predictionHistory/
+//   ├── record-id-1/
+//   │   ├── id
+//   │   ├── timestamp
+//   │   ├── device
+//   │   ├── mode
+//   │   ├── soilPH
+//   │   ├── soilMoistureVWC
+//   │   ├── soilTempC
+//   │   ├── level
+//   │   └── confidence
+//   └── record-id-2/
+//       └── ...
 // ============================================================
 
-const STORAGE_KEY = "wrr_prediction_history";
+import {
+  ref,
+  push,
+  set,
+  remove,
+  onValue,
+} from "firebase/database";
+
+import { rtdb } from "../../firebase";
+
+// ============================================================
+// FIREBASE PATH
+// ============================================================
+
+const HISTORY_PATH = "predictionHistory";
+
+// ============================================================
+// MAX RECORDS
+// ------------------------------------------------------------
+// Firebase will store all records.
+// This value is only used when returning records to the UI.
+// ============================================================
+
 const MAX_RECORDS = 300;
-const EVENT_NAME = "prediction-history-updated";
+
+// ============================================================
+// GET PREDICTION HISTORY
+// ------------------------------------------------------------
+// This function is kept async because Firebase data is loaded
+// asynchronously.
+//
+// IMPORTANT:
+// The History.jsx component currently calls:
+//
+//   useState(() => getPredictionHistory())
+//
+// Therefore the initial value will be [] and the real Firebase
+// data will arrive through subscribeToPredictionHistory().
+// ============================================================
 
 export function getPredictionHistory() {
+  // Firebase data is asynchronous, so return an empty array here.
+  // The realtime listener below loads the actual records.
+  return [];
+}
+
+// ============================================================
+// ADD PREDICTION RECORD
+// ------------------------------------------------------------
+// Saves a new prediction to Firebase Realtime Database.
+// ============================================================
+
+export async function addPredictionRecord(record) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+    // Get a new unique Firebase key
+    const historyRef = ref(rtdb, HISTORY_PATH);
+    const newRecordRef = push(historyRef);
+
+    const entry = {
+      id: newRecordRef.key,
+      timestamp: Date.now(),
+
+      // Store all values coming from the prediction
+      ...record,
+    };
+
+    // Save record to Firebase
+    await set(newRecordRef, entry);
+
+    console.log("========================================");
+    console.log("PREDICTION HISTORY SAVED");
+    console.log("========================================");
+    console.log("Firebase path:", `${HISTORY_PATH}/${newRecordRef.key}`);
+    console.log("Prediction record:", entry);
+    console.log("========================================");
+
+    return entry;
+  } catch (error) {
+    console.error("========================================");
+    console.error("FAILED TO SAVE PREDICTION HISTORY");
+    console.error("========================================");
+    console.error("Firebase error:", error);
+    console.error("Prediction record:", record);
+    console.error("========================================");
+
+    return null;
   }
 }
 
-export function addPredictionRecord(record) {
-  const existing = getPredictionHistory();
+// ============================================================
+// CLEAR PREDICTION HISTORY
+// ------------------------------------------------------------
+// Deletes ALL prediction history from Firebase.
+// ============================================================
 
-  const entry = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    timestamp: Date.now(),
-    ...record,
-  };
-
-  const updated = [entry, ...existing].slice(0, MAX_RECORDS);
-
+export async function clearPredictionHistory() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  } catch {
-    // localStorage full or unavailable — fail silently, entry just won't persist
+    const historyRef = ref(rtdb, HISTORY_PATH);
+
+    await remove(historyRef);
+
+    console.log("Prediction history cleared from Firebase.");
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Failed to clear prediction history:",
+      error
+    );
+
+    return false;
   }
-
-  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: updated }));
-
-  return entry;
 }
 
-export function clearPredictionHistory() {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // ignore
-  }
-  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: [] }));
-}
+// ============================================================
+// SUBSCRIBE TO PREDICTION HISTORY
+// ------------------------------------------------------------
+// Realtime Firebase listener.
+//
+// Whenever a prediction is added/deleted/changed, the History
+// page automatically receives the latest data.
+// ============================================================
 
 export function subscribeToPredictionHistory(callback) {
-  const handler = (e) => callback(e.detail ?? getPredictionHistory());
-  window.addEventListener(EVENT_NAME, handler);
-  return () => window.removeEventListener(EVENT_NAME, handler);
+  const historyRef = ref(rtdb, HISTORY_PATH);
+
+  console.log("========================================");
+  console.log("FIREBASE PREDICTION HISTORY LISTENER");
+  console.log("========================================");
+  console.log("Firebase path:", `/${HISTORY_PATH}`);
+  console.log("========================================");
+
+  const unsubscribe = onValue(
+    historyRef,
+    (snapshot) => {
+      const data = snapshot.val();
+
+      // No records
+      if (!data) {
+        console.log("No prediction history found in Firebase.");
+
+        callback([]);
+        return;
+      }
+
+      // Convert Firebase object into array
+      const records = Object.entries(data).map(
+        ([key, value]) => ({
+          id: value?.id || key,
+          ...value,
+        })
+      );
+
+      // Sort newest first
+      records.sort(
+        (a, b) =>
+          Number(b.timestamp || 0) -
+          Number(a.timestamp || 0)
+      );
+
+      // Limit records displayed by the UI
+      const limitedRecords = records.slice(
+        0,
+        MAX_RECORDS
+      );
+
+      console.log("========================================");
+      console.log("FIREBASE PREDICTION HISTORY");
+      console.log("========================================");
+      console.log("Total records:", records.length);
+      console.log("Records displayed:", limitedRecords.length);
+      console.log("History data:", limitedRecords);
+      console.log("========================================");
+
+      callback(limitedRecords);
+    },
+    (error) => {
+      console.error(
+        "Firebase prediction history listener error:",
+        error
+      );
+
+      callback([]);
+    }
+  );
+
+  // Return Firebase unsubscribe function
+  return () => {
+    console.log(
+      "Removing Firebase prediction history listener."
+    );
+
+    unsubscribe();
+  };
 }
