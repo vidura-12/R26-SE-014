@@ -210,16 +210,20 @@ const fetchDetections = async () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] font-sans selection:bg-amber-200 selection:text-amber-900 relative overflow-hidden pb-20">
+    <div className="min-h-screen flex flex-col bg-[#faf9f6] font-sans selection:bg-amber-200 selection:text-amber-900 relative overflow-hidden">
       <TopNav navigate={navigate} />
       {/* Decorative Background */}
       <div className="fixed top-[-10%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-amber-300/10 blur-[120px] pointer-events-none" />
       <div className="fixed top-[20%] left-[-10%] w-[30vw] h-[30vw] rounded-full bg-orange-300/10 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 pt-28 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 pt-24 relative z-10 flex-1 w-full">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 bg-white/50 p-6 rounded-3xl backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div>
-            <h1 className="font-serif text-4xl md:text-5xl font-medium text-slate-800 tracking-tight leading-tight">
+            <div className="inline-flex items-center gap-3 font-mono text-[10px] tracking-[0.25em] uppercase text-amber-700 bg-amber-100/50 px-4 py-1.5 rounded-full mb-3 border border-amber-200/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              Control Center
+            </div>
+            <h1 className="font-serif text-3xl md:text-4xl font-medium text-slate-800 tracking-tight leading-tight">
               Admin Dashboard
             </h1>
           </div>
@@ -411,6 +415,16 @@ const fetchDetections = async () => {
           )}
         </div>
       </div>
+      
+      {/* ── FOOTER ── */}
+      <footer className="py-4.5 border-t border-amber-900/5 flex flex-row items-center justify-between font-mono text-[10px] tracking-widest uppercase text-gray-400 px-8 gap-2 relative z-10">
+        <span>Cinnamon Grade ID System</span>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+          All Systems Operational
+        </div>
+        <span>© 2025 Ceylon Spice</span>
+      </footer>
     </div>
   );
 }

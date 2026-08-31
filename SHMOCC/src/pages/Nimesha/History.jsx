@@ -180,19 +180,19 @@ export default function History() {
       <div className="fixed top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-amber-300/10 blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-orange-300/10 blur-[150px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-28 pb-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-24 pb-16 relative z-10">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 bg-white/50 p-8 rounded-3xl backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 bg-white/50 p-6 rounded-3xl backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div>
-            <div className="inline-flex items-center gap-3 font-mono text-[10px] tracking-[0.25em] uppercase text-amber-700 bg-amber-100/50 px-4 py-1.5 rounded-full mb-4 border border-amber-200/50">
+            <div className="inline-flex items-center gap-3 font-mono text-[10px] tracking-[0.25em] uppercase text-amber-700 bg-amber-100/50 px-4 py-1.5 rounded-full mb-3 border border-amber-200/50">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               Cinnamon Grading
             </div>
-            <h1 className="font-serif text-4xl md:text-5xl font-medium text-slate-800 tracking-tight leading-tight">
+            <h1 className="font-serif text-3xl md:text-4xl font-medium text-slate-800 tracking-tight leading-tight">
               Detection History
             </h1>
-            <p className="text-sm text-gray-500 mt-2 font-mono uppercase tracking-widest">
+            <p className="text-xs text-gray-500 mt-2 font-mono uppercase tracking-widest">
               {history.length} Total Record{history.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -434,6 +434,16 @@ export default function History() {
           );
         })()}
       </div>
+
+      {/* ── FOOTER ── */}
+      <footer className="py-8 border-t border-amber-900/5 flex flex-col md:flex-row items-center justify-between font-mono text-[10px] tracking-widest uppercase text-gray-400 px-8 gap-4 relative z-10 mt-auto">
+        <span>Cinnamon Grade ID System</span>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+          All Systems Operational
+        </div>
+        <span>© 2025 Ceylon Spice</span>
+      </footer>
     </div>
   );
 }
