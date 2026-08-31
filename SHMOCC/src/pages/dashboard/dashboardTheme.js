@@ -104,7 +104,7 @@ export const DISTRICTS = [
 // BACKEND
 // ============================================================
 
-export const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = "https://wrr-backend.thankfultree-9347156a.southeastasia.azurecontainerapps.io";
 
 
 // ============================================================
