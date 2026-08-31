@@ -732,10 +732,7 @@ export default function Cinnamon() {
       {/* ── CINNAMON IMAGES GALLERY ── */}
       <section className="py-16 px-4 relative z-10 max-w-7xl mx-auto">
         <ScrollReveal direction="up">
-          <div className="flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase text-amber-800/50 mb-10">
-            Visual Reference
-            <div className="flex-1 h-px bg-gradient-to-r from-amber-200/50 to-transparent" />
-          </div>
+          
         </ScrollReveal>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
