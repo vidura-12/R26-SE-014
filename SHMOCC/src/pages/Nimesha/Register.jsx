@@ -1,5 +1,11 @@
-import React, { useState } from "react";
-import sideImage from "../../assets/12.png";
+import React, { useState, useEffect } from "react";
+import img1 from "../../assets/12.png";
+import img2 from "../../assets/7.jpg";
+import img3 from "../../assets/2.jpg";
+import img4 from "../../assets/5.jpg";
+import img5 from "../../assets/6.jpg";
+
+const images = [img1, img2, img3, img4, img5];
 
 export default function Register({ onBackToLogin }) {
   const [name, setName] = useState("");
@@ -8,6 +14,12 @@ export default function Register({ onBackToLogin }) {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIndex((p) => (p + 1) % images.length), 4500);
+    return () => clearInterval(id);
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -54,16 +66,22 @@ export default function Register({ onBackToLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex selection:bg-amber-200 selection:text-amber-900 font-sans">
-      
-      {/* Left side: Image / Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-amber-900 overflow-hidden shadow-2xl z-10">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] p-4 sm:p-8 selection:bg-amber-200 selection:text-amber-900 font-sans">
+      <div className="flex w-full max-w-[1020px] h-[min(640px,calc(100vh-48px))] rounded-[20px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.1)] bg-white">
+        
+        {/* Left side: Image / Branding */}
+        <div className="hidden lg:flex lg:w-1/2 relative bg-amber-900 overflow-hidden z-10">
         <div className="absolute inset-0 bg-gradient-to-t from-amber-900/90 via-amber-900/40 to-transparent z-10" />
-        <img 
-          src={sideImage} 
-          alt="Premium Cinnamon Sticks" 
-          className="absolute inset-0 w-full h-full object-cover scale-105"
-        />
+        {images.map((src, i) => (
+          <img 
+            key={src}
+            src={src} 
+            alt="Premium Cinnamon Sticks" 
+            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-1000 ease-in-out ${
+              i !== index ? "opacity-0" : "opacity-100"
+            }`}
+          />
+        ))}
         <div className="relative z-20 flex flex-col justify-end p-16 h-full text-white w-full">
           <div className="inline-flex items-center gap-3 font-mono text-[10px] tracking-[0.25em] uppercase text-amber-200 bg-amber-900/40 px-4 py-1.5 rounded-full mb-6 border border-amber-500/30 backdrop-blur-md w-max">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
@@ -73,14 +91,28 @@ export default function Register({ onBackToLogin }) {
             Join Our<br/>
             <span className="text-amber-300 italic">Community</span>
           </h1>
-          <p className="text-amber-100/80 font-light max-w-md leading-relaxed">
+          <p className="text-amber-100/80 font-light max-w-md leading-relaxed mb-6">
             Create an account to start grading your Ceylon cinnamon and forecasting market prices instantly.
           </p>
+          <div className="flex items-center gap-1.5 mt-2">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setIndex(i)}
+                className={`h-[7px] rounded-full border-none p-0 cursor-pointer transition-all duration-300 ${
+                  i === index
+                    ? "w-[22px] bg-white shadow-[0_0_6px_rgba(255,255,255,0.5)]"
+                    : "w-[7px] bg-white/35"
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Right side: Register Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-[#faf9f6] relative overflow-hidden">
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-[#faf9f6] relative overflow-y-auto">
         {/* Decorative elements */}
         <div className="absolute top-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-amber-300/10 blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[30vw] h-[30vw] rounded-full bg-orange-300/10 blur-[100px] pointer-events-none" />
@@ -179,6 +211,7 @@ export default function Register({ onBackToLogin }) {
             </p>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );
