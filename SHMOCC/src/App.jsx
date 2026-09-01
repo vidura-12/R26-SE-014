@@ -30,8 +30,10 @@ import Landing from "./pages/Uthara/Landing";
 import SignUp from "./pages/Uthara/Signup";
 import LoginUthara from "./pages/Uthara/Login";
 import ForgotPassword from "./pages/Uthara/ForgotPassword";
+
+// Uthara dashboard
+import Layout from "./components/layout/Layout";
 import Advisory from "./pages/dashboard/Advisory";
-import DashboardLayoutUthara from "./pages/dashboard/DashboardLayout";
 import Overview from "./pages/dashboard/Overview";
 import Devices from "./pages/dashboard/Devices";
 import HistoryUthara from "./pages/dashboard/History";
@@ -53,7 +55,7 @@ function PublicRouteVidura({ children }) {
   return token ? <Navigate to={DASHBOARD_PATH} replace /> : children;
 }
 
-// cinnamon auth
+// ── Cinnamon auth ───────────────────────────────────────────────────────────
 function CinnamonPrivateRoute({ children }) {
   const token = localStorage.getItem("cinnamonToken");
   return token ? children : <Navigate to="/cinnamon/login" replace />;
@@ -65,7 +67,16 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+
+            {/* ═══════════════════════════════════════════════════════════════
+                SHARED HOME
+            ═══════════════════════════════════════════════════════════════ */}
             <Route path="/" element={<Mainpage />} />
+
+
+            {/* ═══════════════════════════════════════════════════════════════
+                VIDURA — PLANTATION HEALTH
+            ═══════════════════════════════════════════════════════════════ */}
 
             {/* Vidura public routes */}
             <Route
@@ -76,6 +87,7 @@ export default function App() {
                 </PublicRouteVidura>
               }
             />
+
             <Route
               path="/plantation-health/signup"
               element={
@@ -95,14 +107,40 @@ export default function App() {
               }
             >
               <Route index element={<FarmRegister />} />
-              <Route path="fields/register" element={<FarmRegister />} />
-              <Route path="fields/farm" element={<FarmMap />} />
-              <Route path="map" element={<Map />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="farmhistory" element={<Farmhistory />} />
-              <Route path="FarmForecast" element={<FarmForecast />} />
+              <Route
+                path="fields/register"
+                element={<FarmRegister />}
+              />
+              <Route
+                path="fields/farm"
+                element={<FarmMap />}
+              />
+              <Route
+                path="map"
+                element={<Map />}
+              />
+              <Route
+                path="reports"
+                element={<Reports />}
+              />
+              <Route
+                path="profile"
+                element={<Profile />}
+              />
+              <Route
+                path="farmhistory"
+                element={<Farmhistory />}
+              />
+              <Route
+                path="FarmForecast"
+                element={<FarmForecast />}
+              />
             </Route>
+
+
+            {/* ═══════════════════════════════════════════════════════════════
+                NIMESHA — CINNAMON GRADING & MARKET
+            ═══════════════════════════════════════════════════════════════ */}
 
             {/* Cinnamon auth */}
             <Route
@@ -115,6 +153,7 @@ export default function App() {
                 )
               }
             />
+
             <Route
               path="/cinnamon"
               element={
@@ -123,6 +162,7 @@ export default function App() {
                 </CinnamonPrivateRoute>
               }
             />
+
             <Route
               path="/cinnamon/history"
               element={
@@ -131,6 +171,7 @@ export default function App() {
                 </CinnamonPrivateRoute>
               }
             />
+
             <Route
               path="/cinnamon/admin"
               element={
@@ -140,27 +181,72 @@ export default function App() {
               }
             />
 
-            {/* Uthara — disease prediction */}
-            <Route path="/disease-prediction/home" element={<Landing />} />
-            <Route path="/disease-prediction/signup" element={<SignUp />} />
-            <Route path="/disease-prediction/login" element={<LoginUthara />} />
-            <Route path="/disease-prediction/forgot-password" element={<ForgotPassword />} />
+
+            {/* ═══════════════════════════════════════════════════════════════
+                UTHARA — DISEASE PREDICTION
+            ═══════════════════════════════════════════════════════════════ */}
+
+            {/* Uthara public routes */}
+            <Route
+              path="/disease-prediction/home"
+              element={<Landing />}
+            />
+
+            <Route
+              path="/disease-prediction/signup"
+              element={<SignUp />}
+            />
+
+            <Route
+              path="/disease-prediction/login"
+              element={<LoginUthara />}
+            />
+
+            <Route
+              path="/disease-prediction/forgot-password"
+              element={<ForgotPassword />}
+            />
+
+            {/* Uthara dashboard */}
             <Route
               path="/disease-prediction/dashboard"
               element={
                 <PrivateRouteUthara>
-                  <DashboardLayoutUthara />
+                  <Layout />
                 </PrivateRouteUthara>
               }
             >
-              <Route index element={<Overview />} />
-              <Route path="devices" element={<Devices />} />
-              <Route path="history" element={<HistoryUthara />} />
-              <Route path="sensor-data" element={<SensorData />} />
-              <Route path="advisory" element={<Advisory />} />
+              {/* /disease-prediction/dashboard */}
+              <Route
+                index
+                element={<Overview />}
+              />
+
+              {/* /disease-prediction/dashboard/devices */}
+              <Route
+                path="devices"
+                element={<Devices />}
+              />
+
+              {/* /disease-prediction/dashboard/history */}
+              <Route
+                path="history"
+                element={<HistoryUthara />}
+              />
+
+              {/* /disease-prediction/dashboard/sensor-data */}
+              <Route
+                path="sensor-data"
+                element={<SensorData />}
+              />
+
+              {/* /disease-prediction/dashboard/advisory */}
+              <Route
+                path="advisory"
+                element={<Advisory />}
+              />
             </Route>
 
-            
           </Routes>
         </BrowserRouter>
       </AuthProvider>
@@ -168,4 +254,8 @@ export default function App() {
   );
 }
 
-export { TOKEN_KEY, DASHBOARD_PATH, LOGIN_PATH };
+export {
+  TOKEN_KEY,
+  DASHBOARD_PATH,
+  LOGIN_PATH,
+};

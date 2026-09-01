@@ -1,0 +1,877 @@
+/* =========================================================
+   SENSOR DATA PAGE
+   ========================================================= */
+
+.dashboard-page {
+  width: 100%;
+}
+
+/* =========================================================
+   ACTIVE DEVICE
+   ========================================================= */
+
+.sensor-device-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+
+  background: #ffffff;
+  border: 1px solid #dfe8e3;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(30, 55, 42, 0.04);
+}
+
+.sensor-device-bar > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.sensor-device-bar .eyebrow {
+  margin-right: 4px;
+}
+
+.sensor-device-bar strong {
+  color: #071b14;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.sensor-device-id {
+  color: #718078;
+  font-size: 11px;
+}
+
+.sensor-device-bar select {
+  width: 100%;
+  height: 38px;
+  padding: 0 36px 0 12px;
+
+  border: 1px solid #d9e4de;
+  border-radius: 9px;
+  outline: none;
+
+  background: #ffffff;
+  color: #25332d;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.sensor-device-bar select:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.10);
+}
+
+
+/* =========================================================
+   DATA SOURCE CARD
+   ========================================================= */
+
+.sensor-mode-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 20px;
+
+  background: #ffffff;
+  border: 1px solid #dfe8e3;
+  border-radius: 15px;
+  box-shadow: 0 5px 18px rgba(30, 55, 42, 0.045);
+}
+
+.sensor-mode-card > div:first-child {
+  min-width: 0;
+}
+
+.sensor-mode-card h2 {
+  margin: 5px 0 5px;
+
+  color: #071b14;
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 750;
+}
+
+.sensor-mode-card p {
+  margin: 0;
+
+  color: #718078;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   LIVE / MANUAL BUTTONS
+   ========================================================= */
+
+.sensor-mode-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.mode-button {
+  height: 36px;
+  padding: 0 16px;
+
+  border: 1px solid #dce6e0;
+  border-radius: 9px;
+
+  background: #f7faf8;
+  color: #65736d;
+
+  font-size: 10px;
+  font-weight: 750;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.mode-button:hover {
+  border-color: #19b957;
+  color: #087f3c;
+}
+
+.mode-button.active {
+  border-color: #16a34a;
+  background: #12a64d;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(18, 166, 77, 0.18);
+}
+
+
+/* =========================================================
+   MANUAL INPUT CARD
+   ========================================================= */
+
+.manual-input-card {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 22px;
+
+  background: #ffffff;
+  border: 1px solid #dfe8e3;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(30, 55, 42, 0.045);
+}
+
+.manual-input-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 20px;
+}
+
+.manual-input-header h2 {
+  margin: 5px 0 5px;
+
+  color: #071b14;
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.manual-input-header p {
+  margin: 0;
+
+  color: #718078;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   USE LIVE VALUES BUTTON
+   ========================================================= */
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 38px;
+  padding: 0 15px;
+
+  border: 1px solid #d8e4dd;
+  border-radius: 9px;
+
+  background: #f7faf8;
+  color: #426056;
+
+  font-size: 10.5px;
+  font-weight: 750;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition: all 0.18s ease;
+}
+
+.secondary-button:hover:not(:disabled) {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #087f3c;
+}
+
+.secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MANUAL FORM
+   ========================================================= */
+
+.manual-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 14px;
+}
+
+.manual-form-grid label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.manual-form-grid label > span {
+  margin-bottom: 7px;
+
+  color: #34453e;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.manual-form-grid input {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+
+  border: 1px solid #d9e3de;
+  border-radius: 9px;
+  outline: none;
+
+  background: #ffffff;
+  color: #071b14;
+
+  font-size: 11.5px;
+  font-weight: 600;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.manual-form-grid input:hover {
+  border-color: #c3d4cb;
+}
+
+.manual-form-grid input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.09);
+}
+
+.manual-form-grid input::placeholder {
+  color: #9aa8a1;
+  font-weight: 500;
+}
+
+.manual-form-grid small {
+  margin-top: 5px;
+
+  color: #8a9891;
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+
+/* =========================================================
+   MANUAL ACTIONS
+   ========================================================= */
+
+.manual-input-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+
+  margin-top: 20px;
+  padding-top: 16px;
+
+  border-top: 1px solid #edf2ef;
+}
+
+.manual-input-actions .secondary-button {
+  min-width: 76px;
+}
+
+.predict-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 40px;
+  padding: 0 17px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #0ca34b;
+  color: #ffffff;
+
+  font-size: 10.5px;
+  font-weight: 750;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  box-shadow: 0 5px 14px rgba(12, 163, 75, 0.18);
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.predict-button:hover:not(:disabled) {
+  background: #07883d;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(12, 163, 75, 0.23);
+}
+
+.predict-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* =========================================================
+   SENSOR GRID
+   ========================================================= */
+
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.sensor-card {
+  min-width: 0;
+  min-height: 175px;
+  padding: 20px;
+
+  background: #ffffff;
+  border: 1px solid #dfe7e2;
+  border-radius: 16px;
+
+  box-shadow: 0 5px 18px rgba(30, 55, 42, 0.05);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sensor-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbded3;
+  box-shadow: 0 8px 22px rgba(30, 55, 42, 0.08);
+}
+
+.sensor-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 17px;
+}
+
+.sensor-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 12px;
+  background: #effbf3;
+
+  font-size: 19px;
+}
+
+.sensor-live {
+  display: inline-flex;
+  align-items: center;
+
+  color: #16a34a;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.sensor-live .live-dot {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+}
+
+.sensor-card-title {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #5f7068;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sensor-card-value {
+  color: #071b14;
+  font-size: 27px;
+  line-height: 1.15;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.sensor-card-value small {
+  margin-left: 3px;
+
+  color: #61716a;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.sensor-card-description {
+  display: block;
+  margin-top: 10px;
+
+  color: #8a9891;
+  font-size: 9.5px;
+}
+
+
+/* =========================================================
+   LIVE PREDICTION PANEL
+   ========================================================= */
+
+.prediction-trigger-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+
+  width: 100%;
+  margin-top: 2px;
+  margin-bottom: 20px;
+  padding: 20px 22px;
+
+  background: #ffffff;
+  border: 1px solid #dfe7e2;
+  border-radius: 16px;
+
+  box-shadow: 0 5px 18px rgba(30, 55, 42, 0.045);
+
+  box-sizing: border-box;
+}
+
+.prediction-trigger-card > div {
+  min-width: 0;
+}
+
+.prediction-trigger-card h2 {
+  margin: 5px 0 4px;
+
+  color: #071b14;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.prediction-trigger-card p {
+  max-width: 680px;
+  margin: 0;
+
+  color: #718078;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.prediction-input-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  margin-top: 10px;
+}
+
+.prediction-input-summary span {
+  padding: 5px 8px;
+
+  border: 1px solid #e0e9e4;
+  border-radius: 6px;
+
+  background: #f7faf8;
+
+  color: #718078;
+  font-size: 9px;
+}
+
+.prediction-input-summary strong {
+  color: #071b14;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.prediction-error {
+  margin-top: 14px;
+  padding: 11px 13px;
+
+  border: 1px solid #f1caca;
+  border-radius: 9px;
+
+  background: #fff7f7;
+  color: #b42318;
+
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   PREDICTION RESULT
+   ========================================================= */
+
+.prediction-result {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.prediction-result-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 14px;
+}
+
+.prediction-result-header h2 {
+  margin: 5px 0 4px;
+
+  color: #071b14;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.prediction-result-header p {
+  margin: 0;
+
+  color: #718078;
+  font-size: 10.5px;
+}
+
+.prediction-complete {
+  padding: 7px 10px;
+
+  border: 1px solid #d6eadc;
+  border-radius: 999px;
+
+  background: #f0fdf4;
+  color: #15803d;
+
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   RISK + CONFIDENCE
+   ========================================================= */
+
+.prediction-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  margin-bottom: 14px;
+}
+
+.risk-result-card,
+.confidence-result-card {
+  min-height: 175px;
+  padding: 22px;
+
+  border: 1px solid #dfe7e2;
+  border-radius: 15px;
+
+  background: #ffffff;
+  box-shadow: 0 5px 18px rgba(30, 55, 42, 0.045);
+}
+
+.result-label {
+  display: block;
+
+  margin-bottom: 9px;
+
+  color: #7b8a83;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.risk-result-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #071b14;
+  font-size: 25px;
+  font-weight: 850;
+}
+
+.risk-result-dot {
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+  background: #16a34a;
+}
+
+.risk-result-card.risk-medium .risk-result-dot {
+  background: #ca8a04;
+}
+
+.risk-result-card.risk-high .risk-result-dot {
+  background: #ea580c;
+}
+
+.risk-result-card.risk-critical .risk-result-dot {
+  background: #dc2626;
+}
+
+.risk-result-card p,
+.confidence-result-card p {
+  margin: 12px 0 0;
+
+  color: #718078;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.confidence-result-card > strong {
+  display: block;
+
+  color: #071b14;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 850;
+}
+
+.confidence-bar {
+  width: 100%;
+  height: 7px;
+
+  margin-top: 12px;
+
+  overflow: hidden;
+  border-radius: 999px;
+
+  background: #e8eeeb;
+}
+
+.confidence-bar > div {
+  height: 100%;
+
+  border-radius: inherit;
+  background: #16a34a;
+
+  transition: width 0.4s ease;
+}
+
+
+/* =========================================================
+   RESULT SECTIONS
+   ========================================================= */
+
+.advisory-result-card,
+.result-list-card {
+  margin-bottom: 14px;
+  padding: 22px;
+
+  border: 1px solid #dfe7e2;
+  border-radius: 15px;
+
+  background: #ffffff;
+  box-shadow: 0 5px 18px rgba(30, 55, 42, 0.045);
+}
+
+.result-section-header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  margin-bottom: 14px;
+}
+
+.result-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 10px;
+  background: #effbf3;
+
+  font-size: 17px;
+}
+
+.result-section-header h3 {
+  margin: 3px 0 0;
+
+  color: #071b14;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.advisory-report {
+  color: #52635b;
+  font-size: 11px;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.result-list-item {
+  display: flex;
+  gap: 10px;
+
+  padding: 11px 12px;
+
+  border: 1px solid #e5ece8;
+  border-radius: 9px;
+
+  background: #f9fbfa;
+
+  color: #52635b;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1000px) {
+  .sensor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manual-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prediction-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .sensor-device-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .sensor-mode-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .manual-input-header {
+    flex-direction: column;
+  }
+
+  .manual-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prediction-trigger-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .prediction-trigger-card .predict-button {
+    width: 100%;
+  }
+
+  .prediction-result-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .sensor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sensor-mode-buttons {
+    width: 100%;
+  }
+
+  .mode-button {
+    flex: 1;
+  }
+
+  .manual-input-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .manual-input-actions button {
+    width: 100%;
+  }
+
+  .prediction-input-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .prediction-input-summary span {
+    width: fit-content;
+  }
+}
