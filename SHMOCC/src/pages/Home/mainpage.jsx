@@ -332,7 +332,7 @@ function Hero() {
         >
           {[
             ["4", "independent systems, one shared platform"],
-            ["2", "languages — Sinhala and English"],
+            ["3", "languages — Sinhala, English, and Tamil"],
             ["Karandeniya", "field data behind every model"],
             ["Ongoing", "research, validated against real harvests"],
           ].map(([stat, label]) => (
