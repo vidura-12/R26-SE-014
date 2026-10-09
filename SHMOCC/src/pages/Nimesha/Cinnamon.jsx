@@ -111,10 +111,10 @@ const SLIDES = [
 ];
 
 const HERO_SLIDES = [
-  { src: slide5, label: "Ground cinnamon", desc: "Fine powder for baking and cooking" },
-  { src: slide6, label: "Ceylon quills", desc: "Hand-rolled premium bark" },
+  { src: slide8, label: "Ground cinnamon", desc: "Fine powder for baking and cooking" },
+  { src: slide2, label: "Ceylon quills", desc: "Hand-rolled premium bark" },
   { src: slide7, label: "Rolled quills", desc: "Layered, tightly curled bark" },
-  { src: slide8, label: "Quills and powder", desc: "From bundle to spice jar" },
+  { src: slide5, label: "Quills and powder", desc: "From bundle to spice jar" },
 ];
 
 export default function Cinnamon() {
