@@ -6,7 +6,7 @@ import {
   Sun, Ban, Camera, Ruler, CheckCircle2, Layers, ScanLine, Sparkles,
   ImageOff, Hand, Droplets, Eye, ArrowRight, RotateCcw,
 } from "lucide-react";
-import slide2 from "../../assets/05.png";
+import slide2 from "../../assets/11.png";
 
 /* ── data ─────────────────────────────────────────────── */
 const HERO_IMG = slide2;
@@ -374,12 +374,20 @@ export default function Guidelines() {
                       <svg width="64" height="64" viewBox="0 0 80 80" style={{ transform: `scale(${m.scale})` }}>
                         <defs>
                           <linearGradient id="gxBark" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#B57F49" /><stop offset="100%" stopColor="#7A4A25" /></linearGradient>
+                          <linearGradient id="gxBarkV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#D2A068" /><stop offset="55%" stopColor="#A06A3A" /><stop offset="100%" stopColor="#6B3E1D" /></linearGradient>
                         </defs>
                         {mode === "quill" ? (
                           <>
-                            <rect x="16" y="14" width="48" height="52" rx="24" fill="url(#gxBark)" />
-                            <ellipse cx="40" cy="16" rx="18" ry="7" fill="#E7C79B" />
-                            <ellipse cx="40" cy="16" rx="11" ry="4.2" fill="#7A4A25" />
+                            {/* one cinnamon quill lying on its side, rolled end facing the camera */}
+                            <rect x="16" y="28" width="58" height="24" rx="12" fill="url(#gxBarkV)" />
+                            {[33, 40, 47].map((y) => (
+                              <path key={y} d={`M24 ${y} Q46 ${y - 2} 70 ${y}`} stroke="rgba(0,0,0,0.16)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                            ))}
+                            <path d="M30 31 Q48 29 68 31" stroke="rgba(255,235,200,0.35)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+                            <ellipse cx="18" cy="40" rx="8" ry="12.5" fill="#E7C79B" />
+                            <ellipse cx="18" cy="40" rx="5.8" ry="9.4" fill="none" stroke="#B57F49" strokeWidth="1.3" />
+                            <ellipse cx="18" cy="40" rx="3.6" ry="6.2" fill="none" stroke="#9A6535" strokeWidth="1.3" />
+                            <ellipse cx="18" cy="40" rx="1.6" ry="3" fill="#6B3E1D" />
                           </>
                         ) : (
                           <>
