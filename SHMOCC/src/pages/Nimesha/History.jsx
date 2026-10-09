@@ -102,6 +102,12 @@ function TopNav({ navigate }) {
             Detection
           </button>
           <button
+            onClick={() => navigate("/cinnamon/guidelines")}
+            className="whitespace-nowrap px-5 py-2 rounded-full bg-white/60 border border-[#3E1B12]/10 text-[#3E1B12] text-sm font-medium hover:bg-white hover:shadow-sm transition-all duration-300"
+          >
+            Guideline to get images
+          </button>
+          <button
             onClick={() => navigate("/cinnamon/history")}
             className="whitespace-nowrap px-5 py-2 rounded-full bg-[#3E1B12] text-[#FBF6EF] text-sm font-medium shadow-sm transition-all duration-300"
           >

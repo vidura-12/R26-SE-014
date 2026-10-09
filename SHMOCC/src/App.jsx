@@ -24,6 +24,7 @@ import Cinnamon from "./pages/Nimesha/Cinnamon";
 import GradeMarketAuth from "./pages/Nimesha/GradeMarketAuth";
 import History from "./pages/Nimesha/History";
 import Admin from "./pages/Nimesha/Admin";
+import Guidelines from "./pages/Nimesha/Guidelines";
 
 // Uthara's part (disease prediction)
 import Landing from "./pages/Uthara/Landing";
@@ -159,6 +160,15 @@ export default function App() {
               element={
                 <CinnamonPrivateRoute>
                   <Cinnamon />
+                </CinnamonPrivateRoute>
+              }
+            />
+
+            <Route
+              path="/cinnamon/guidelines"
+              element={
+                <CinnamonPrivateRoute>
+                  <Guidelines />
                 </CinnamonPrivateRoute>
               }
             />
