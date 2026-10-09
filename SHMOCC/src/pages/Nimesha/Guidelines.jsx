@@ -156,7 +156,7 @@ export default function Guidelines() {
         .cx-slide.on { opacity:1; animation:cxZoom 10s ease-out both; }
         @keyframes cxZoom { from{transform:scale(1)} to{transform:scale(1.08)} }
         .cx-shade { position:absolute; inset:0; z-index:-1; background:linear-gradient(95deg,rgba(20,10,5,.9) 0%,rgba(20,10,5,.55) 50%,rgba(20,10,5,.3) 100%),linear-gradient(180deg,rgba(20,10,5,.05) 0%,rgba(20,10,5,.5) 50%,rgba(20,10,5,.9) 100%); }
-        .gx-hero { min-height:46vh; display:flex; align-items:flex-end; padding:130px 0 48px; }
+        .gx-hero { min-height:40vh; display:flex; align-items:flex-end; padding:110px 0 40px; }
         .gx-hero .cx-wrap { width:100%; }
         .gx-hero h1 { font-size:clamp(34px,4.6vw,60px); line-height:1.06; font-weight:600; color:#fff; max-width:760px; text-shadow:0 4px 30px rgba(0,0,0,.4); }
         .gx-hero-row { display:flex; align-items:center; justify-content:space-between; gap:32px; margin-top:22px; }
