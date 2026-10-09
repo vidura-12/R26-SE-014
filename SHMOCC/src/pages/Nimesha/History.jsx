@@ -372,8 +372,8 @@ export default function History() {
               <>
                 <ScrollReveal direction="up">
                   <div className="cx-sec-head">
-                    <h2>{isAdmin ? "User grade detections" : "Your grade mix"}</h2>
-                    <p>{isAdmin ? "How all user batches split across grades." : "How your batches split across grades."}</p>
+                    <h2>{isAdmin ? "Test Records" : "Your grade mix"}</h2>
+                    <p>{isAdmin ? "Overview of all grade detection tests performed by the admin." : "How your batches split across grades."}</p>
                   </div>
                   <div className="cx-surface hx-dist" style={{ marginBottom: 64 }}>
                     {Object.entries(gradeCounts).map(([grade, count]) => {
