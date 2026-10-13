@@ -205,7 +205,7 @@ const handleSearch = async () => {
       };
 
       try {
-        await axios.post("https://localhost:44331/api/farm", payload);
+        await axios.post("https://farmhealthapi.gentlefield-0e78cc7e.centralindia.azurecontainerapps.io/api/farm", payload);
 
         showToast("✓ Farm saved successfully", "success");
 

@@ -3,7 +3,7 @@ import axios from "axios";
 import { useLanguage } from "../dashboard/context/LanguageContext";
 import { useTheme } from "../dashboard/context/ThemeContext";
 
-const API = "https://localhost:44331";
+const API = "https://farmhealthapi.gentlefield-0e78cc7e.centralindia.azurecontainerapps.io";
 
 // ─── Colour helpers (same as FarmHistory) ───────────────────────────────────
 function riskColor(r) {

@@ -13,7 +13,7 @@ export default function Login() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("https://localhost:44331/api/auth/login", data);
+      const res = await axios.post("https://farmhealthapi.gentlefield-0e78cc7e.centralindia.azurecontainerapps.io/api/auth/login", data);
 
       localStorage.setItem(TOKEN_KEY, res.data.token);
       localStorage.setItem("userId", res.data.userId);

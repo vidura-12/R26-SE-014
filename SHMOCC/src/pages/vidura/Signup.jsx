@@ -38,7 +38,7 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      const res = await axios.post("https://localhost:44331/api/auth/signup", data);
+      const res = await axios.post("https://farmhealthapi.gentlefield-0e78cc7e.centralindia.azurecontainerapps.io/api/auth/signup", data);
       alert("Account created successfully!");
     } catch (err) {
       alert(err.response?.data || err.message);
