@@ -1,49 +1,68 @@
+
 import { useCallback, useEffect, useState } from "react";
 import { getPrediction } from "../services/predictionApi";
 
-export default function usePrediction(sensorData) {
+export default function usePrediction(sensorData, language = "en") {
   const [prediction, setPrediction] = useState(null);
   const [advisory, setAdvisory] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const predict = useCallback(async () => {
-    if (!sensorData) return;
+    if (!sensorData) {
+      setPrediction(null);
+      setAdvisory(null);
+      setError("");
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError("");
 
     try {
-      const result = await getPrediction(
-        sensorData
-      );
+      // Send sensor readings and selected language to FastAPI
+      const result = await getPrediction(sensorData, language);
 
-      setPrediction(result.prediction || null);
-      setAdvisory(result.advisory || null);
+      // Save prediction and advisory results
+      setPrediction(result?.prediction ?? null);
+      setAdvisory(result?.advisory ?? null);
+
+      if (!result?.prediction || !result?.advisory) {
+        throw new Error(
+          "The prediction service returned incomplete data."
+        );
+      }
     } catch (err) {
-      console.error(
-        "Prediction failed:",
-        err
-      );
+      console.error("Prediction failed:", err);
 
+      setPrediction(null);
+      setAdvisory(null);
       setError(
-        "Unable to connect to the prediction service."
+        err?.message ||
+          "Unable to connect to the prediction service."
       );
     } finally {
       setLoading(false);
     }
-  }, [sensorData]);
+  }, [sensorData, language]);
 
   useEffect(() => {
-    if (!sensorData) return;
+    if (!sensorData) {
+      setPrediction(null);
+      setAdvisory(null);
+      setError("");
+      setLoading(false);
+      return;
+    }
 
+    // Debounce requests when sensor data or language changes
     const timer = setTimeout(() => {
       predict();
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [sensorData, predict]);
+  }, [sensorData, language, predict]);
 
   return {
     prediction,
