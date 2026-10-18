@@ -35,7 +35,7 @@ const riskColor = r => {
 };
 
 const CELL_DEG = 0.00009;
-const API      = "https://localhost:44331";
+const API      = "https://farmhealthapi.gentlefield-0e78cc7e.centralindia.azurecontainerapps.io";
 
 // ─── Popup HTML (Tailwind classes — project must have Tailwind's JIT scanning this file) ──
 // NOTE: labels param added so the Leaflet popup (plain HTML, outside React) can show
